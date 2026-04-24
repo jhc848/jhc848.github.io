@@ -3,445 +3,666 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI背书系统</title>
+    <title>作业管理大师</title>
+    <!-- 引入外部依赖库 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    
+    <!-- Tailwind 配置 -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#3b82f6',
-                        secondary: '#60a5fa',
-                        success: '#10b981',
-                        danger: '#ef4444',
-                        warning: '#f59e0b',
+                        primary: '#165DFF',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                        neutral: '#F2F3F5'
                     },
-                    animation: {
-                        'pulse-error': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) 3',
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
                     }
                 }
             }
         }
     </script>
+    
     <style type="text/tailwindcss">
         @layer utilities {
-            .text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            .transition-height { transition: height 0.3s ease; }
-            .scrollbar-thin { scrollbar-width: thin; }
-            .scrollbar-thin::-webkit-scrollbar { width: 6px; }
-            .scrollbar-thin::-webkit-scrollbar-track { background: #f1f1f1; }
-            .scrollbar-thin::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
+            .card-shadow {
+                box-shadow: 0 2px 14px 0 rgba(0, 0, 0, 0.06);
+            }
+            .btn-hover {
+                @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5;
+            }
+            .input-focus {
+                @apply focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all;
+            }
         }
-    </style>
-    <style>
-        @keyframes blink {
-            0%,100%{opacity:1;}50%{opacity:.5;}
-        }
-        .blink{animation:blink 1s infinite;}
-        @keyframes highlight{
-            0%{background:rgba(239,68,68,0);}
-            50%{background:rgba(239,68,68,.5);}
-            100%{background:rgba(239,68,68,0);}
-        }
-        .highlight-error{animation:highlight 1s ease-in-out;}
-        .progress-bar{transition:width .3s ease;}
-        .word-correct{background:rgba(16,185,129,.2);border-radius:2px;}
-        .word-error{background:rgba(239,68,68,.2);border-radius:2px;text-decoration:underline wavy #ef4444;}
-        .word-missing{background:rgba(245,158,11,.2);border-radius:2px;text-decoration:line-through;}
-        .wave{display:inline-block;width:3px;height:12px;margin:0 1px;background:#3b82f6;border-radius:3px;animation:wave 1s infinite ease-in-out;}
-        .wave:nth-child(2){animation-delay:.1s;}
-        .wave:nth-child(3){animation-delay:.2s;}
-        .wave:nth-child(4){animation-delay:.3s;}
-        .wave:nth-child(5){animation-delay:.4s;}
-        @keyframes wave{0%,100%{transform:scaleY(.5);}50%{transform:scaleY(1);}}
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-<header class="bg-white shadow-sm">
-    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-        <div class="flex items-center space-x-2">
-            <i class="fa fa-microphone text-primary text-2xl"></i>
-            <h1 class="text-xl font-bold text-gray-800">AI背书系统</h1>
+    <!-- 顶部导航栏 -->
+    <header class="bg-white card-shadow sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="fa fa-graduation-cap text-primary text-2xl"></i>
+                <h1 class="text-xl md:text-2xl font-bold text-gray-800">作业管理大师</h1>
+            </div>
+            <div class="text-sm text-gray-500">
+                <span id="current-date"></span>
+            </div>
         </div>
-        <nav>
-            <ul class="flex space-x-6">
-                <li><a href="#" class="text-gray-600 hover:text-primary" id="nav-home">首页</a></li>
-                <li><a href="#" class="text-gray-600 hover:text-primary" id="nav-history">历史</a></li>
-                <li><a href="#" class="text-gray-600 hover:text-primary" id="nav-help">帮助</a></li>
-            </ul>
-        </nav>
-    </div>
-</header>
+    </header>
 
-<main class="container mx-auto px-4 py-8">
-    <section id="home-section">
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 class="text-xl font-semibold mb-2">欢迎使用AI背书系统</h2>
-            <p class="text-gray-600">粘贴原文 → 开始朗读 → 实时纠错 → 自动评分</p>
+    <main class="container mx-auto px-4 py-6">
+        <!-- 班级管理区域 -->
+        <div class="bg-white rounded-xl p-5 card-shadow mb-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fa fa-users text-primary mr-2"></i>班级管理
+                </h2>
+                <div class="flex gap-2">
+                    <input type="text" id="classNameInput" placeholder="输入新班级名称" 
+                        class="px-3 py-2 border border-gray-300 rounded-lg input-focus flex-1 md:w-auto">
+                    <button id="addClassBtn" class="bg-primary text-white px-4 py-2 rounded-lg btn-hover">
+                        <i class="fa fa-plus mr-1"></i>添加班级
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap gap-2 mb-4" id="classList">
+                <!-- 班级标签将动态生成 -->
+            </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex justify-between mb-4">
-                    <h3 class="text-lg font-medium">原文</h3>
-                    <div class="flex space-x-2">
-                        <button id="paste-btn" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm"><i class="fa fa-paste mr-1"></i>粘贴</button>
-                        <label for="file-upload" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm cursor-pointer"><i class="fa fa-upload mr-1"></i>上传</label>
-                        <input id="file-upload" type="file" accept=".txt" class="hidden">
+        <!-- 学生添加区域 -->
+        <div class="bg-white rounded-xl p-5 card-shadow mb-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fa fa-user-plus text-primary mr-2"></i>添加学生
+                </h2>
+                <div class="flex flex-wrap gap-2">
+                    <!-- 手动添加 -->
+                    <div class="flex gap-2">
+                        <input type="text" id="studentName" placeholder="姓名" 
+                            class="px-3 py-2 border border-gray-300 rounded-lg input-focus w-24">
+                        <input type="text" id="studentId" placeholder="学号" 
+                            class="px-3 py-2 border border-gray-300 rounded-lg input-focus w-28">
+                        <button id="addStudentBtn" class="bg-success text-white px-3 py-2 rounded-lg btn-hover">
+                            <i class="fa fa-check mr-1"></i>手动添加
+                        </button>
                     </div>
+                    
+                    <!-- Excel导入 -->
+                    <label class="bg-warning text-white px-3 py-2 rounded-lg btn-hover cursor-pointer flex items-center">
+                        <i class="fa fa-file-excel-o mr-1"></i>导入Excel
+                        <input type="file" id="excelFile" accept=".xlsx,.xls" class="hidden">
+                    </label>
                 </div>
-                <textarea id="original-text" class="w-full h-80 p-4 border rounded-md resize-none scrollbar-thin" placeholder="请粘贴需要背诵的文字..."></textarea>
-                <div id="text-stats" class="text-xs text-gray-500 mt-2">0 字 | 0 词</div>
             </div>
-
-            <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex justify-between mb-4">
-                    <h3 class="text-lg font-medium">识别结果</h3>
-                    <div id="recognition-status" class="text-sm text-gray-500">准备就绪</div>
-                </div>
-                <div id="recognized-text-container" class="w-full h-80 p-4 border rounded-md overflow-y-auto scrollbar-thin">
-                    <p class="text-gray-400 text-center mt-16">点击开始背书</p>
-                </div>
-                <div id="error-context" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-md hidden">
-                    <h4 class="text-sm font-medium text-red-700 mb-1">错误上下文</h4>
-                    <p id="error-context-text" class="text-sm"></p>
-                </div>
+            
+            <div class="text-sm text-gray-500 mb-2">
+                <i class="fa fa-info-circle mr-1"></i>Excel需包含【姓名】【学号】表头，将自动识别导入
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-6 mt-6">
-            <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                <div class="w-full md:w-2/3">
-                    <div class="flex justify-between text-sm mb-1">
-                        <span>进度</span><span id="progress-percentage">0%</span>
+        <!-- 核心功能区 -->
+        <div class="bg-white rounded-xl p-5 card-shadow mb-6">
+            <div class="flex flex-wrap gap-4 mb-4">
+                <button id="scanHomeworkBtn" class="bg-danger text-white px-6 py-3 rounded-lg btn-hover flex items-center">
+                    <i class="fa fa-qrcode mr-2 text-xl"></i>统计作业（扫码）
+                </button>
+                <button id="refreshStatusBtn" class="bg-gray-600 text-white px-6 py-3 rounded-lg btn-hover flex items-center">
+                    <i class="fa fa-refresh mr-2"></i>刷新状态
+                </button>
+                <div class="ml-auto flex items-center gap-2 text-gray-700">
+                    <span>已提交：</span>
+                    <span id="submittedCount" class="font-bold text-success">0</span>
+                    <span class="mx-2">|</span>
+                    <span>总人数：</span>
+                    <span id="totalCount" class="font-bold primary">0</span>
+                </div>
+            </div>
+
+            <!-- 扫码弹窗（默认隐藏） -->
+            <div id="scanModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-white rounded-xl w-full max-w-lg p-5 relative">
+                    <button id="closeScanBtn" class="absolute right-4 top-4 text-gray-500 hover:text-gray-800">
+                        <i class="fa fa-times text-xl"></i>
+                    </button>
+                    <h3 class="text-lg font-semibold mb-4 text-center">扫描作业二维码</h3>
+                    <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden mb-4">
+                        <video id="video" class="w-full h-full object-cover"></video>
+                        <canvas id="scanCanvas" class="absolute inset-0 w-full h-full hidden"></canvas>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        <div id="progress-bar" class="bg-primary h-2.5 rounded-full" style="width:0"></div>
-                    </div>
-                </div>
-                <div class="flex space-x-3">
-                    <button id="reset-btn" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"><i class="fa fa-refresh mr-1"></i>重置</button>
-                    <button id="start-btn" class="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"><i class="fa fa-play mr-1"></i>开始背书</button>
+                    <p id="scanResult" class="text-center text-gray-700 min-h-6"></p>
                 </div>
             </div>
         </div>
-    </section>
 
-    <section id="score-section" class="hidden bg-white rounded-lg shadow p-6 mt-6">
-        <h2 class="text-xl font-semibold mb-4">背书评分</h2>
-        <div class="grid grid-cols-3 gap-6 mb-6">
-            <div class="p-4 bg-blue-50 rounded flex flex-col items-center">
-                <span class="text-sm text-gray-600">总分</span>
-                <span id="total-score" class="text-4xl font-bold text-primary">0</span>
+        <!-- 学生列表区域 -->
+        <div class="bg-white rounded-xl p-5 card-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fa fa-list-alt text-primary mr-2"></i>
+                    <span id="studentListTitle">学生列表</span>
+                </h2>
+                <div class="flex gap-2">
+                    <button id="exportAllQrBtn" class="bg-warning text-white px-4 py-2 rounded-lg btn-hover">
+                        <i class="fa fa-download mr-1"></i>导出全部二维码
+                    </button>
+                    <button id="generateAllQrBtn" class="bg-primary/90 text-white px-4 py-2 rounded-lg btn-hover">
+                        <i class="fa fa-qrcode mr-1"></i>生成全部二维码
+                    </button>
+                </div>
             </div>
-            <div class="p-4 bg-green-50 rounded flex flex-col items-center">
-                <span class="text-sm text-gray-600">准确率</span>
-                <span id="accuracy-score" class="text-2xl font-bold text-success">0%</span>
-            </div>
-            <div class="p-4 bg-yellow-50 rounded flex flex-col items-center">
-                <span class="text-sm text-gray-600">流畅度</span>
-                <span id="fluency-score" class="text-2xl font-bold text-warning">0%</span>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="py-3 px-4 font-semibold">序号</th>
+                            <th class="py-3 px-4 font-semibold">学号</th>
+                            <th class="py-3 px-4 font-semibold">姓名</th>
+                            <th class="py-3 px-4 font-semibold">班级</th>
+                            <th class="py-3 px-4 font-semibold">二维码</th>
+                            <th class="py-3 px-4 font-semibold">提交状态</th>
+                            <th class="py-3 px-4 font-semibold">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                        <!-- 学生数据将动态生成 -->
+                    </tbody>
+                </table>
             </div>
         </div>
-        <div class="flex justify-end mt-6 space-x-3">
-            <button id="new-recitation-btn" class="px-4 py-2 bg-gray-200 rounded">重新背书</button>
-        </div>
-    </section>
+    </main>
 
-    <section id="history-section" class="hidden p-6 bg-white rounded shadow mb-6">
-        <h2 class="text-xl font-semibold mb-4">历史记录</h2>
-        <div id="history-list" class="text-center text-gray-500 py-8">暂无记录</div>
-    </section>
+    <footer class="mt-10 py-6 text-center text-gray-500 text-sm">
+        <p>作业管理大师 © 纯前端版 | 数据本地存储，安全可靠</p>
+    </footer>
 
-    <section id="help-section" class="hidden p-6 bg-white rounded shadow">
-        <h2 class="text-xl font-semibold mb-4">使用帮助</h2>
-        <div class="space-y-3 text-gray-700">
-            <p>1. 使用 Chrome / Edge 浏览器</p>
-            <p>2. 必须用 http://localhost 打开（不能双击打开）</p>
-            <p>3. 允许麦克风权限</p>
-            <p>4. 朗读时语速适中，咬字清晰</p>
-        </div>
-    </section>
-</main>
+    <script>
+        // 全局数据
+        let currentClass = "默认班级";
+        let classes = JSON.parse(localStorage.getItem("homeworkClasses")) || ["默认班级"];
+        let students = JSON.parse(localStorage.getItem("homeworkStudents")) || [];
 
-<script>
-let recognition = null;
-let isRecording = false;
-let originalText = '';
-let recognizedText = '';
-let comparisonResult = [];
-let startTime = 0;
-let endTime = 0;
+        // DOM元素
+        const classNameInput = document.getElementById("classNameInput");
+        const addClassBtn = document.getElementById("addClassBtn");
+        const classList = document.getElementById("classList");
+        const studentName = document.getElementById("studentName");
+        const studentId = document.getElementById("studentId");
+        const addStudentBtn = document.getElementById("addStudentBtn");
+        const excelFile = document.getElementById("excelFile");
+        const scanHomeworkBtn = document.getElementById("scanHomeworkBtn");
+        const scanModal = document.getElementById("scanModal");
+        const closeScanBtn = document.getElementById("closeScanBtn");
+        const video = document.getElementById("video");
+        const scanCanvas = document.getElementById("scanCanvas");
+        const scanResult = document.getElementById("scanResult");
+        const studentTableBody = document.getElementById("studentTableBody");
+        const studentListTitle = document.getElementById("studentListTitle");
+        const submittedCount = document.getElementById("submittedCount");
+        const totalCount = document.getElementById("totalCount");
+        const refreshStatusBtn = document.getElementById("refreshStatusBtn");
+        const generateAllQrBtn = document.getElementById("generateAllQrBtn");
+        const exportAllQrBtn = document.getElementById("exportAllQrBtn");
+        const currentDate = document.getElementById("current-date");
 
-const originalTextArea = document.getElementById('original-text');
-const recognizedTextContainer = document.getElementById('recognized-text-container');
-const recognitionStatus = document.getElementById('recognition-status');
-const startBtn = document.getElementById('start-btn');
-const resetBtn = document.getElementById('reset-btn');
-const progressBar = document.getElementById('progress-bar');
-const progressPercentage = document.getElementById('progress-percentage');
-const errorContext = document.getElementById('error-context');
-const errorContextText = document.getElementById('error-context-text');
-const textStats = document.getElementById('text-stats');
-
-document.addEventListener('DOMContentLoaded', () => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        recognitionStatus.textContent = '❌ 浏览器不支持语音识别';
-        recognitionStatus.classList.add('text-red-500');
-        startBtn.disabled = true;
-        return;
-    }
-    initSpeechRecognition();
-    initEvents();
-});
-
-function initSpeechRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'zh-CN';
-
-    recognition.onstart = () => {
-        isRecording = true;
-        recognitionStatus.innerHTML = '<span class="flex items-center"><span class="wave"></span><span class="wave"></span><span class="wave"></span><span class="wave"></span><span class="wave"></span> 正在识别...</span>';
-        startBtn.innerHTML = '<i class="fa fa-stop mr-1"></i>停止背书';
-        startBtn.classList.remove('bg-primary');
-        startBtn.classList.add('bg-red-500');
-        startTime = Date.now();
-    };
-
-    recognition.onresult = (e) => {
-        let final = '';
-        let inter = '';
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-            if (e.results[i].isFinal) final += e.results[i][0].transcript;
-            else inter += e.results[i][0].transcript;
-        }
-        recognizedText = final || inter;
-        updateRecognized();
-        if (final) compare();
-    };
-
-    recognition.onerror = (e) => {
-        console.error('识别错误', e.error);
-        recognitionStatus.textContent = '❌ 识别失败：' + e.error;
-        recognitionStatus.classList.add('text-red-500');
-        // 修复：这里不再调用不存在的函数
-        resetRecognitionUI();
-    };
-
-    recognition.onend = () => {
-        isRecording = false;
-        if (startBtn.innerHTML.includes('停止')) {
-            endTime = Date.now();
-            calculateScore();
-        }
-        resetRecognitionUI();
-    };
-}
-
-function initEvents() {
-    startBtn.onclick = toggleRecord;
-    resetBtn.onclick = resetAll;
-    originalTextArea.oninput = updateOriginal;
-    document.getElementById('paste-btn').onclick = () => {
-        navigator.clipboard.readText().then(t => {
-            originalTextArea.value = t;
-            updateOriginal();
+        // 初始化日期
+        currentDate.textContent = new Date().toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long'
         });
-    };
-    document.getElementById('file-upload').onchange = (e) => {
-        const f = e.target.files[0];
-        if (!f) return;
-        const r = new FileReader();
-        r.onload = () => {
-            originalTextArea.value = r.result;
-            updateOriginal();
+
+        // 初始化页面
+        init();
+
+        // 初始化函数
+        function init() {
+            renderClassList();
+            renderStudentList();
+            updateStats();
+        }
+
+        // 渲染班级列表
+        function renderClassList() {
+            classList.innerHTML = "";
+            classes.forEach(className => {
+                const classTag = document.createElement("span");
+                classTag.className = `px-3 py-1.5 rounded-full text-sm cursor-pointer btn-hover ${
+                    currentClass === className ? "bg-primary text-white" : "bg-neutral text-gray-700 hover:bg-primary/10"
+                }`;
+                classTag.textContent = className;
+                classTag.onclick = () => {
+                    currentClass = className;
+                    studentListTitle.textContent = `${className} - 学生列表`;
+                    renderClassList();
+                    renderStudentList();
+                    updateStats();
+                };
+                
+                // 添加删除按钮（非默认班级）
+                if (className !== "默认班级") {
+                    const deleteBtn = document.createElement("i");
+                    deleteBtn.className = "fa fa-times ml-2 cursor-pointer";
+                    deleteBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        if (confirm(`确定要删除班级【${className}】吗？该班级学生也会被删除！`)) {
+                            classes = classes.filter(c => c !== className);
+                            students = students.filter(s => s.class !== className);
+                            if (currentClass === className) currentClass = "默认班级";
+                            saveData();
+                            renderClassList();
+                            renderStudentList();
+                            updateStats();
+                        }
+                    };
+                    classTag.appendChild(deleteBtn);
+                }
+                
+                classList.appendChild(classTag);
+            });
+            studentListTitle.textContent = `${currentClass} - 学生列表`;
+        }
+
+        // 添加班级
+        addClassBtn.onclick = () => {
+            const name = classNameInput.value.trim();
+            if (!name) {
+                alert("请输入班级名称！");
+                return;
+            }
+            if (classes.includes(name)) {
+                alert("该班级已存在！");
+                return;
+            }
+            classes.push(name);
+            classNameInput.value = "";
+            saveData();
+            renderClassList();
         };
-        r.readAsText(f);
-    };
-    document.getElementById('new-recitation-btn').onclick = () => {
-        resetAll();
-        document.getElementById('score-section').classList.add('hidden');
-        document.getElementById('home-section').classList.remove('hidden');
-    };
-    document.getElementById('nav-home').onclick = (e) => {
-        e.preventDefault();
-        document.getElementById('home-section').classList.remove('hidden');
-        document.getElementById('score-section').classList.add('hidden');
-        document.getElementById('history-section').classList.add('hidden');
-        document.getElementById('help-section').classList.add('hidden');
-    };
-    document.getElementById('nav-history').onclick = (e) => {
-        e.preventDefault();
-        document.getElementById('history-section').classList.remove('hidden');
-        document.getElementById('home-section').classList.add('hidden');
-        document.getElementById('score-section').classList.add('hidden');
-        document.getElementById('help-section').classList.add('hidden');
-    };
-    document.getElementById('nav-help').onclick = (e) => {
-        e.preventDefault();
-        document.getElementById('help-section').classList.remove('hidden');
-        document.getElementById('home-section').classList.add('hidden');
-        document.getElementById('score-section').classList.add('hidden');
-        document.getElementById('history-section').classList.add('hidden');
-    };
-}
 
-function toggleRecord() {
-    if (!originalText) {
-        alert('请输入原文');
-        return;
-    }
-    if (isRecording) {
-        recognition.stop();
-    } else {
-        recognizedText = '';
-        comparisonResult = [];
-        recognizedTextContainer.innerHTML = '';
-        errorContext.classList.add('hidden');
-        recognition.start();
-    }
-}
+        // 手动添加学生
+        addStudentBtn.onclick = () => {
+            const name = studentName.value.trim();
+            const id = studentId.value.trim();
+            
+            if (!name || !id) {
+                alert("请输入完整的姓名和学号！");
+                return;
+            }
+            
+            // 检查学号重复
+            if (students.some(s => s.id === id && s.class === currentClass)) {
+                alert("该班级内学号已存在！");
+                return;
+            }
+            
+            const student = {
+                id: id,
+                name: name,
+                class: currentClass,
+                submitted: false,
+                qrCode: ""
+            };
+            
+            students.push(student);
+            studentName.value = "";
+            studentId.value = "";
+            saveData();
+            renderStudentList();
+            updateStats();
+        };
 
-function resetRecognitionUI() {
-    recognitionStatus.textContent = '准备就绪';
-    recognitionStatus.classList.remove('text-red-500');
-    startBtn.innerHTML = '<i class="fa fa-play mr-1"></i>开始背书';
-    startBtn.classList.remove('bg-red-500');
-    startBtn.classList.add('bg-primary');
-}
-
-function resetAll() {
-    if (isRecording) recognition.stop();
-    originalText = '';
-    recognizedText = '';
-    comparisonResult = [];
-    originalTextArea.value = '';
-    recognizedTextContainer.innerHTML = '<p class="text-gray-400 text-center mt-16">点击开始背书</p>';
-    errorContext.classList.add('hidden');
-    progressBar.style.width = '0%';
-    progressPercentage.textContent = '0%';
-    resetRecognitionUI();
-    updateStats();
-}
-
-function updateOriginal() {
-    originalText = originalTextArea.value;
-    updateStats();
-}
-
-function updateStats() {
-    const len = originalText.length;
-    const words = originalText.trim() ? originalText.trim().split(/\s+/).length : 0;
-    textStats.textContent = len + ' 字 | ' + words + ' 词';
-}
-
-function updateRecognized() {
-    if (!recognizedText) {
-        recognizedTextContainer.innerHTML = '<p class="text-gray-400 text-center mt-16">点击开始背书</p>';
-        return;
-    }
-    const p = document.createElement('p');
-    p.className = 'whitespace-pre-wrap';
-    if (comparisonResult.length) {
-        comparisonResult.forEach(item => {
-            const s = document.createElement('span');
-            s.textContent = item.word + ' ';
-            s.className = item.status === 'correct' ? 'word-correct' : item.status === 'error' ? 'word-error' : 'word-missing';
-            p.appendChild(s);
-        });
-    } else {
-        p.textContent = recognizedText;
-    }
-    recognizedTextContainer.innerHTML = '';
-    recognizedTextContainer.appendChild(p);
-    recognizedTextContainer.scrollTop = recognizedTextContainer.scrollHeight;
-}
-
-function compare() {
-    if (!originalText || !recognizedText) return;
-    const O = originalText.toLowerCase().split(/\s+/);
-    const R = recognizedText.toLowerCase().split(/\s+/);
-    comparisonResult = [];
-    let oi = 0, ri = 0;
-    while (oi < O.length && ri < R.length) {
-        if (O[oi] === R[ri]) {
-            comparisonResult.push({ word: R[ri], status: 'correct' });
-            oi++; ri++;
-        } else {
-            let found = false;
-            for (let j = 1; j <= 3 && oi + j < O.length; j++) {
-                if (O[oi + j] === R[ri]) {
-                    for (let k = 0; k < j; k++) {
-                        comparisonResult.push({ word: O[oi + k], status: 'missing' });
+        // Excel导入学生
+        excelFile.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    if (jsonData.length === 0) {
+                        alert("Excel文件中无数据！");
+                        return;
                     }
-                    oi += j;
-                    found = true;
-                    break;
+                    
+                    // 检查表头
+                    if (!jsonData[0].hasOwnProperty('姓名') || !jsonData[0].hasOwnProperty('学号')) {
+                        alert("Excel必须包含【姓名】和【学号】列！");
+                        return;
+                    }
+                    
+                    let successCount = 0;
+                    let failCount = 0;
+                    
+                    jsonData.forEach(row => {
+                        const name = row['姓名']?.toString().trim();
+                        const id = row['学号']?.toString().trim();
+                        
+                        if (name && id && !students.some(s => s.id === id && s.class === currentClass)) {
+                            students.push({
+                                id: id,
+                                name: name,
+                                class: currentClass,
+                                submitted: false,
+                                qrCode: ""
+                            });
+                            successCount++;
+                        } else {
+                            failCount++;
+                        }
+                    });
+                    
+                    saveData();
+                    renderStudentList();
+                    updateStats();
+                    alert(`导入完成！成功：${successCount} 人，失败：${failCount} 人`);
+                } catch (error) {
+                    alert("Excel解析失败：" + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        };
+
+        // 渲染学生列表
+        function renderStudentList() {
+            const classStudents = students.filter(s => s.class === currentClass);
+            studentTableBody.innerHTML = "";
+            
+            classStudents.forEach((student, index) => {
+                const tr = document.createElement("tr");
+                tr.className = "border-b border-gray-100 hover:bg-gray-50";
+                
+                tr.innerHTML = `
+                    <td class="py-3 px-4">${index + 1}</td>
+                    <td class="py-3 px-4">${student.id}</td>
+                    <td class="py-3 px-4 font-medium">${student.name}</td>
+                    <td class="py-3 px-4">${student.class}</td>
+                    <td class="py-3 px-4">
+                        <div id="qr-${student.id}" class="w-16 h-16"></div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 rounded text-xs font-medium ${
+                            student.submitted ? "bg-success/10 text-success" : "bg-gray-100 text-gray-600"
+                        }">
+                            ${student.submitted ? "已提交" : "未提交"}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <button class="text-primary hover:text-primary/70 mr-2 generate-qr" data-id="${student.id}">
+                            <i class="fa fa-qrcode"></i>
+                        </button>
+                        <button class="text-success hover:text-success/70 mr-2 export-qr" data-id="${student.id}" title="导出二维码">
+                            <i class="fa fa-download"></i>
+                        </button>
+                        <button class="text-danger hover:text-danger/70 delete-student" data-id="${student.id}">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                studentTableBody.appendChild(tr);
+                
+                // 生成二维码（如果有数据）
+                if (student.qrCode) {
+                    document.getElementById(`qr-${student.id}`).innerHTML = student.qrCode;
+                }
+            });
+            
+            // 绑定生成二维码事件
+            document.querySelectorAll('.generate-qr').forEach(btn => {
+                btn.onclick = () => generateQrCode(btn.dataset.id);
+            });
+            
+            // 绑定导出二维码事件
+            document.querySelectorAll('.export-qr').forEach(btn => {
+                btn.onclick = () => exportSingleQr(btn.dataset.id);
+            });
+            
+            // 绑定删除学生事件
+            document.querySelectorAll('.delete-student').forEach(btn => {
+                btn.onclick = () => deleteStudent(btn.dataset.id);
+            });
+        }
+
+        // 生成单个二维码
+        function generateQrCode(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+            
+            const qrText = `班级：${student.class}\n学号：${student.id}\n姓名：${student.name}`;
+            const qrContainer = document.getElementById(`qr-${studentId}`);
+            
+            QRCode.toCanvas(qrContainer, qrText, {
+                width: 200,
+                margin: 1
+            }, (error) => {
+                if (error) console.error(error);
+                else {
+                    student.qrCode = qrContainer.innerHTML;
+                    saveData();
+                }
+            });
+        }
+
+        // 导出单个二维码
+        function exportSingleQr(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) {
+                alert("请先生成二维码！");
+                return;
+            }
+            
+            const qrContainer = document.getElementById(`qr-${studentId}`);
+            const canvas = qrContainer.querySelector('canvas');
+            
+            if (!canvas) {
+                alert("请先生成二维码！");
+                generateQrCode(studentId);
+                return;
+            }
+            
+            // 创建下载链接
+            const link = document.createElement('a');
+            link.download = `${student.name}_${student.id}_二维码.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // 批量导出当前班级所有二维码
+        exportAllQrBtn.onclick = async () => {
+            const classStudents = students.filter(s => s.class === currentClass);
+            if (classStudents.length === 0) {
+                alert("当前班级无学生！");
+                return;
+            }
+            
+            // 先确保所有二维码已生成
+            for (let student of classStudents) {
+                if (!student.qrCode) {
+                    await new Promise(resolve => generateQrCode(student.id));
                 }
             }
-            if (!found) {
-                comparisonResult.push({ word: R[ri], status: 'error' });
-                showContext(ri, R);
-                ri++;
+            
+            // 依次下载
+            for (let student of classStudents) {
+                setTimeout(() => {
+                    const qrContainer = document.getElementById(`qr-${student.id}`);
+                    const canvas = qrContainer.querySelector('canvas');
+                    const link = document.createElement('a');
+                    link.download = `${student.name}_${student.id}_二维码.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }, 300);
+            }
+            
+            alert("开始批量导出二维码，请勿关闭页面！");
+        };
+
+        // 生成全部二维码
+        generateAllQrBtn.onclick = () => {
+            const classStudents = students.filter(s => s.class === currentClass);
+            if (classStudents.length === 0) {
+                alert("当前班级无学生！");
+                return;
+            }
+            
+            classStudents.forEach(student => generateQrCode(student.id));
+            alert("全部二维码生成完成！");
+        };
+
+        // 删除学生
+        function deleteStudent(studentId) {
+            if (!confirm("确定删除该学生？")) return;
+            students = students.filter(s => s.id !== studentId);
+            saveData();
+            renderStudentList();
+            updateStats();
+        }
+
+        // 打开扫码弹窗
+        scanHomeworkBtn.onclick = () => {
+            scanModal.classList.remove("hidden");
+            startScanner();
+        };
+
+        // 关闭扫码弹窗
+        closeScanBtn.onclick = () => {
+            scanModal.classList.add("hidden");
+            stopScanner();
+            scanResult.textContent = "";
+        };
+
+        // 启动摄像头扫码
+        function startScanner() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                    .then(stream => {
+                        video.srcObject = stream;
+                        video.play();
+                        requestAnimationFrame(scanLoop);
+                    })
+                    .catch(err => {
+                        alert("摄像头调用失败：" + err.message + "\n请允许摄像头权限！");
+                    });
+            } else {
+                alert("您的浏览器不支持摄像头功能！");
             }
         }
-    }
-    while (oi < O.length) {
-        comparisonResult.push({ word: O[oi++], status: 'missing' });
-    }
-    while (ri < R.length) {
-        comparisonResult.push({ word: R[ri], status: 'error' });
-        showContext(ri, R);
-        ri++;
-    }
-    updateRecognized();
-    updateProgress();
-}
 
-function showContext(idx, words) {
-    const s = Math.max(0, idx - 5);
-    const e = Math.min(words.length, idx + 6);
-    let t = '';
-    for (let i = s; i < e; i++) {
-        if (i === idx) t += `<span class="text-red-500 font-medium">${words[i]}</span> `;
-        else t += words[i] + ' ';
-    }
-    errorContextText.innerHTML = t;
-    errorContext.classList.remove('hidden');
-}
+        // 停止摄像头
+        function stopScanner() {
+            const stream = video.srcObject;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+        }
 
-function updateProgress() {
-    if (!originalText) return;
-    const total = originalText.trim().split(/\s+/).length;
-    const correct = comparisonResult.filter(x => x.status === 'correct').length;
-    const p = Math.min(100, Math.round(correct / total * 100));
-    progressBar.style.width = p + '%';
-    progressPercentage.textContent = p + '%';
-}
+        // 扫码循环
+        function scanLoop() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                scanCanvas.width = video.videoWidth;
+                scanCanvas.height = video.videoHeight;
+                const ctx = scanCanvas.getContext("2d");
+                ctx.drawImage(video, 0, 0, scanCanvas.width, scanCanvas.height);
+                
+                const imageData = ctx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                
+                if (code) {
+                    handleScanResult(code.data);
+                }
+            }
+            if (!scanModal.classList.contains("hidden")) {
+                requestAnimationFrame(scanLoop);
+            }
+        }
 
-function calculateScore() {
-    if (!originalText || !recognizedText) return;
-    const O = originalText.trim().split(/\s+/);
-    const correct = comparisonResult.filter(x => x.status === 'correct').length;
-    const error = comparisonResult.filter(x => x.status === 'error').length;
-    const missing = comparisonResult.filter(x => x.status === 'missing').length;
-    const accuracy = O.length ? Math.round(correct / O.length * 100) : 0;
-    const time = Math.round((endTime - startTime) / 1000);
-    const fluency = Math.max(0, 100 - (error + missing) * 5 - time / 2);
-    const score = Math.round(accuracy * 0.6 + fluency * 0.4);
+        // 处理扫码结果
+        function handleScanResult(data) {
+            try {
+                // 解析二维码信息
+                const lines = data.split('\n');
+                const studentId = lines[1].replace('学号：', '').trim();
+                
+                const student = students.find(s => s.id === studentId);
+                if (!student) {
+                    scanResult.textContent = "❌ 未找到该学生信息";
+                    scanResult.className = "text-center text-danger";
+                    return;
+                }
+                
+                if (student.class !== currentClass) {
+                    scanResult.textContent = `❌ 学生不属于【${currentClass}】`;
+                    scanResult.className = "text-center text-danger";
+                    return;
+                }
+                
+                if (student.submitted) {
+                    scanResult.textContent = `✅ ${student.name} 已提交过作业`;
+                    scanResult.className = "text-center text-success";
+                    return;
+                }
+                
+                // 标记为已提交
+                student.submitted = true;
+                saveData();
+                renderStudentList();
+                updateStats();
+                
+                scanResult.textContent = `✅ ${student.name} 作业提交成功！`;
+                scanResult.className = "text-center text-success";
+                
+                // 1秒后清空提示
+                setTimeout(() => scanResult.textContent = "", 1500);
+                
+            } catch (error) {
+                scanResult.textContent = "❌ 二维码解析失败";
+                scanResult.className = "text-center text-danger";
+            }
+        }
 
-    document.getElementById('total-score').textContent = score;
-    document.getElementById('accuracy-score').textContent = accuracy + '%';
-    document.getElementById('fluency-score').textContent = Math.round(fluency) + '%';
+        // 更新统计数据
+        function updateStats() {
+            const classStudents = students.filter(s => s.class === currentClass);
+            const submitted = classStudents.filter(s => s.submitted).length;
+            totalCount.textContent = classStudents.length;
+            submittedCount.textContent = submitted;
+        }
 
-    document.getElementById('home-section').classList.add('hidden');
-    document.getElementById('score-section').classList.remove('hidden');
-}
-</script>
+        // 刷新状态（重置全部未提交）
+        refreshStatusBtn.onclick = () => {
+            if (!confirm("确定要重置当前班级所有学生的提交状态吗？")) return;
+            students.forEach(s => {
+                if (s.class === currentClass) s.submitted = false;
+            });
+            saveData();
+            renderStudentList();
+            updateStats();
+        };
+
+        // 保存数据到本地存储
+        function saveData() {
+            localStorage.setItem("homeworkClasses", JSON.stringify(classes));
+            localStorage.setItem("homeworkStudents", JSON.stringify(students));
+        }
+    </script>
 </body>
 </html>
