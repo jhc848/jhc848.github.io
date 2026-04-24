@@ -4,13 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI背书系统</title>
-    <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
-    <!-- 统一的 Tailwind 配置 -->
     <script>
         tailwind.config = {
             theme: {
@@ -21,12 +17,6 @@
                         success: '#10b981',
                         danger: '#ef4444',
                         warning: '#f59e0b',
-                        info: '#3b82f6',
-                        light: '#f3f4f6',
-                        dark: '#1f2937'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
                     },
                     animation: {
                         'pulse-error': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) 3',
@@ -37,1157 +27,421 @@
     </script>
     <style type="text/tailwindcss">
         @layer utilities {
-            .text-shadow {
-                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            .transition-height {
-                transition: height 0.3s ease;
-            }
-            .scrollbar-thin {
-                scrollbar-width: thin;
-            }
-            .scrollbar-thin::-webkit-scrollbar {
-                width: 6px;
-            }
-            .scrollbar-thin::-webkit-scrollbar-track {
-                background: #f1f1f1;
-            }
-            .scrollbar-thin::-webkit-scrollbar-thumb {
-                background: #888;
-                border-radius: 3px;
-            }
-            .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-                background: #555;
-            }
+            .text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+            .transition-height { transition: height 0.3s ease; }
+            .scrollbar-thin { scrollbar-width: thin; }
+            .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+            .scrollbar-thin::-webkit-scrollbar-track { background: #f1f1f1; }
+            .scrollbar-thin::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
         }
     </style>
     <style>
-        /* 自定义动画 */
         @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%,100%{opacity:1;}50%{opacity:.5;}
         }
-        .blink {
-            animation: blink 1s infinite;
+        .blink{animation:blink 1s infinite;}
+        @keyframes highlight{
+            0%{background:rgba(239,68,68,0);}
+            50%{background:rgba(239,68,68,.5);}
+            100%{background:rgba(239,68,68,0);}
         }
-        
-        @keyframes highlight {
-            0% { background-color: rgba(239, 68, 68, 0); }
-            50% { background-color: rgba(239, 68, 68, 0.5); }
-            100% { background-color: rgba(239, 68, 68, 0); }
-        }
-        .highlight-error {
-            animation: highlight 1s ease-in-out;
-        }
-        
-        /* 进度条动画 */
-        .progress-bar {
-            transition: width 0.3s ease;
-        }
-        
-        /* 文本对比高亮 */
-        .word-correct {
-            background-color: rgba(16, 185, 129, 0.2);
-            border-radius: 2px;
-        }
-        .word-error {
-            background-color: rgba(239, 68, 68, 0.2);
-            border-radius: 2px;
-            text-decoration: underline wavy #ef4444;
-        }
-        .word-missing {
-            background-color: rgba(245, 158, 11, 0.2);
-            border-radius: 2px;
-            text-decoration: line-through;
-        }
-        
-        /* 波形动画 */
-        .wave {
-            display: inline-block;
-            width: 3px;
-            height: 12px;
-            margin: 0 1px;
-            background-color: #3b82f6;
-            border-radius: 3px;
-            animation: wave 1s infinite ease-in-out;
-        }
-        .wave:nth-child(2) {
-            animation-delay: 0.1s;
-        }
-        .wave:nth-child(3) {
-            animation-delay: 0.2s;
-        }
-        .wave:nth-child(4) {
-            animation-delay: 0.3s;
-        }
-        .wave:nth-child(5) {
-            animation-delay: 0.4s;
-        }
-        @keyframes wave {
-            0%, 100% { transform: scaleY(0.5); }
-            50% { transform: scaleY(1.0); }
-        }
+        .highlight-error{animation:highlight 1s ease-in-out;}
+        .progress-bar{transition:width .3s ease;}
+        .word-correct{background:rgba(16,185,129,.2);border-radius:2px;}
+        .word-error{background:rgba(239,68,68,.2);border-radius:2px;text-decoration:underline wavy #ef4444;}
+        .word-missing{background:rgba(245,158,11,.2);border-radius:2px;text-decoration:line-through;}
+        .wave{display:inline-block;width:3px;height:12px;margin:0 1px;background:#3b82f6;border-radius:3px;animation:wave 1s infinite ease-in-out;}
+        .wave:nth-child(2){animation-delay:.1s;}
+        .wave:nth-child(3){animation-delay:.2s;}
+        .wave:nth-child(4){animation-delay:.3s;}
+        .wave:nth-child(5){animation-delay:.4s;}
+        @keyframes wave{0%,100%{transform:scaleY(.5);}50%{transform:scaleY(1);}}
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- 顶部导航栏 -->
-    <header class="bg-white shadow-sm">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <i class="fa fa-microphone text-primary text-2xl"></i>
-                <h1 class="text-xl font-bold text-gray-800">AI背书系统</h1>
-            </div>
-            <nav>
-                <ul class="flex space-x-6">
-                    <li><a href="#" class="text-gray-600 hover:text-primary transition-colors" id="nav-home">首页</a></li>
-                    <li><a href="#" class="text-gray-600 hover:text-primary transition-colors" id="nav-history">历史记录</a></li>
-                    <li><a href="#" class="text-gray-600 hover:text-primary transition-colors" id="nav-help">使用帮助</a></li>
-                </ul>
-            </nav>
+<header class="bg-white shadow-sm">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <i class="fa fa-microphone text-primary text-2xl"></i>
+            <h1 class="text-xl font-bold text-gray-800">AI背书系统</h1>
         </div>
-    </header>
+        <nav>
+            <ul class="flex space-x-6">
+                <li><a href="#" class="text-gray-600 hover:text-primary" id="nav-home">首页</a></li>
+                <li><a href="#" class="text-gray-600 hover:text-primary" id="nav-history">历史</a></li>
+                <li><a href="#" class="text-gray-600 hover:text-primary" id="nav-help">帮助</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
 
-    <!-- 主内容区 -->
-    <main class="container mx-auto px-4 py-8">
-        <!-- 首页内容 -->
-        <section id="home-section" class="space-y-6">
-            <!-- 欢迎信息 -->
-            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-2">欢迎使用AI背书系统</h2>
-                <p class="text-gray-600">上传原文，开始朗读，系统将实时比对并提供反馈。完成后可查看评分和历史记录。</p>
-            </div>
-
-            <!-- 功能区域 -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- 左侧：原文展示区 -->
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-medium text-gray-800">原文</h3>
-                        <div class="flex space-x-2">
-                            <button id="paste-btn" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm text-gray-700 transition-colors">
-                                <i class="fa fa-paste mr-1"></i> 粘贴
-                            </button>
-                            <label for="file-upload" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm text-gray-700 cursor-pointer transition-colors">
-                                <i class="fa fa-upload mr-1"></i> 上传文件
-                            </label>
-                            <input id="file-upload" type="file" accept=".txt" class="hidden">
-                        </div>
-                    </div>
-                    <div class="relative">
-                        <textarea id="original-text" class="w-full h-80 p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none scrollbar-thin" placeholder="请在此处粘贴或上传原文..."></textarea>
-                        <div id="text-stats" class="absolute bottom-2 right-2 text-xs text-gray-500">
-                            0 字 | 0 词
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 右侧：实时识别与比对结果区 -->
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-medium text-gray-800">识别结果</h3>
-                        <div id="recognition-status" class="text-sm text-gray-500">
-                            准备就绪
-                        </div>
-                    </div>
-                    <div id="recognized-text-container" class="w-full h-80 p-4 border border-gray-300 rounded-md overflow-y-auto scrollbar-thin">
-                        <p class="text-gray-400 text-center mt-16">点击下方"开始背书"按钮开始...</p>
-                    </div>
-                    <div id="error-context" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-md hidden">
-                        <h4 class="text-sm font-medium text-red-700 mb-1">错误上下文</h4>
-                        <p id="error-context-text" class="text-sm text-gray-700"></p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 底部控制面板 -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-                    <!-- 进度条 -->
-                    <div class="w-full md:w-2/3">
-                        <div class="flex justify-between text-sm text-gray-500 mb-1">
-                            <span>进度</span>
-                            <span id="progress-percentage">0%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div id="progress-bar" class="bg-primary h-2.5 rounded-full progress-bar" style="width: 0%"></div>
-                        </div>
-                    </div>
-
-                    <!-- 控制按钮 -->
-                    <div class="flex space-x-3">
-                        <button id="reset-btn" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md transition-colors">
-                            <i class="fa fa-refresh mr-1"></i> 重置
-                        </button>
-                        <button id="start-btn" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-md transition-colors">
-                            <i class="fa fa-play mr-1"></i> 开始背书
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 评分结果区域 -->
-        <section id="score-section" class="bg-white rounded-lg shadow-sm p-6 mt-6 hidden">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">背书评分</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- 总分 -->
-                <div class="flex flex-col items-center justify-center p-4 bg-blue-50 rounded-lg">
-                    <span class="text-sm text-gray-600 mb-1">总分</span>
-                    <span id="total-score" class="text-4xl font-bold text-primary">0</span>
-                </div>
-                
-                <!-- 准确率 -->
-                <div class="flex flex-col items-center justify-center p-4 bg-green-50 rounded-lg">
-                    <span class="text-sm text-gray-600 mb-1">准确率</span>
-                    <span id="accuracy-score" class="text-2xl font-bold text-success">0%</span>
-                </div>
-                
-                <!-- 流畅度 -->
-                <div class="flex flex-col items-center justify-center p-4 bg-yellow-50 rounded-lg">
-                    <span class="text-sm text-gray-600 mb-1">流畅度</span>
-                    <span id="fluency-score" class="text-2xl font-bold text-warning">0%</span>
-                </div>
-            </div>
-            
-            <div class="mt-6">
-                <h3 class="text-lg font-medium text-gray-800 mb-3">详细分析</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- 错误分布 -->
-                    <div>
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">错误分布</h4>
-                        <div class="h-48 bg-gray-50 rounded-lg flex items-center justify-center">
-                            <canvas id="error-chart"></canvas>
-                        </div>
-                    </div>
-                    
-                    <!-- 统计信息 -->
-                    <div class="space-y-3">
-                        <div class="flex justify-between p-3 bg-gray-50 rounded-lg">
-                            <span class="text-gray-700">总字数</span>
-                            <span id="total-words" class="font-medium">0</span>
-                        </div>
-                        <div class="flex justify-between p-3 bg-gray-50 rounded-lg">
-                            <span class="text-gray-700">正确字数</span>
-                            <span id="correct-words" class="font-medium">0</span>
-                        </div>
-                        <div class="flex justify-between p-3 bg-gray-50 rounded-lg">
-                            <span class="text-gray-700">错误字数</span>
-                            <span id="error-words" class="font-medium">0</span>
-                        </div>
-                        <div class="flex justify-between p-3 bg-gray-50 rounded-lg">
-                            <span class="text-gray-700">漏读字数</span>
-                            <span id="missing-words" class="font-medium">0</span>
-                        </div>
-                        <div class="flex justify-between p-3 bg-gray-50 rounded-lg">
-                            <span class="text-gray-700">背书用时</span>
-                            <span id="recitation-time" class="font-medium">0秒</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mt-6 flex justify-end space-x-3">
-                <button id="save-result-btn" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-md transition-colors">
-                    <i class="fa fa-save mr-1"></i> 保存结果
-                </button>
-                <button id="new-recitation-btn" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md transition-colors">
-                    <i class="fa fa-plus mr-1"></i> 新的背书
-                </button>
-            </div>
-        </section>
-
-        <!-- 历史记录页面 -->
-        <section id="history-section" class="hidden">
-            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">历史记录</h2>
-                <div id="history-list" class="space-y-4">
-                    <!-- 历史记录将通过JavaScript动态添加 -->
-                    <div class="text-center text-gray-500 py-8">
-                        暂无历史记录
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 历史记录详情 -->
-            <div id="history-detail" class="bg-white rounded-lg shadow-sm p-6 hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-gray-800">历史详情</h2>
-                    <button id="back-to-history-btn" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm text-gray-700 transition-colors">
-                        <i class="fa fa-arrow-left mr-1"></i> 返回
-                    </button>
-                </div>
-                <div id="history-detail-content">
-                    <!-- 历史记录详情将通过JavaScript动态添加 -->
-                </div>
-            </div>
-            
-            <!-- 进步曲线图表 -->
-            <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
-                <h3 class="text-lg font-medium text-gray-800 mb-4">进步曲线</h3>
-                <div class="h-64">
-                    <canvas id="progress-chart"></canvas>
-                </div>
-            </div>
-        </section>
-
-        <!-- 使用帮助页面 -->
-        <section id="help-section" class="hidden">
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">使用帮助</h2>
-                <div class="space-y-6">
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-700 mb-2">1. 准备原文</h3>
-                        <p class="text-gray-600">在左侧文本框中粘贴需要背诵的原文，或通过上传按钮上传TXT格式的文本文件。</p>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-700 mb-2">2. 开始背书</h3>
-                        <p class="text-gray-600">点击"开始背书"按钮，系统将开始识别您的语音。请清晰地朗读原文内容。</p>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-700 mb-2">3. 实时反馈</h3>
-                        <p class="text-gray-600">系统会实时比对您的朗读内容与原文，如有错误会立即高亮显示，并提供错误上下文。</p>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-700 mb-2">4. 查看评分</h3>
-                        <p class="text-gray-600">完成背书后，系统将根据准确率、流畅度等指标给出综合评分，并提供详细分析。</p>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-700 mb-2">5. 历史记录</h3>
-                        <p class="text-gray-600">您可以在"历史记录"页面查看过去的背书成绩和进步曲线。</p>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-700 mb-2">注意事项</h3>
-                        <ul class="list-disc list-inside text-gray-600 space-y-1">
-                            <li>请在安静的环境中使用系统，以提高语音识别准确率。</li>
-                            <li>确保浏览器已获取麦克风权限。</li>
-                            <li>目前系统仅支持中文语音识别。</li>
-                            <li>如需暂停，请点击"重置"按钮。</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- 页脚 -->
-    <footer class="bg-gray-100 py-6 mt-8">
-        <div class="container mx-auto px-4 text-center text-gray-600 text-sm">
-            <p>© 2025 AI背书系统 - 帮助学生高效练习背书</p>
+<main class="container mx-auto px-4 py-8">
+    <section id="home-section">
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-2">欢迎使用AI背书系统</h2>
+            <p class="text-gray-600">粘贴原文 → 开始朗读 → 实时纠错 → 自动评分</p>
         </div>
-    </footer>
 
-    <!-- JavaScript -->
-    <script>
-        // 全局变量
-        let recognition = null;
-        let isRecording = false;
-        let originalText = '';
-        let recognizedText = '';
-        let comparisonResult = [];
-        let startTime = 0;
-        let endTime = 0;
-        let errorChart = null;
-        let progressChart = null;
-        
-        // DOM元素
-        const originalTextArea = document.getElementById('original-text');
-        const recognizedTextContainer = document.getElementById('recognized-text-container');
-        const recognitionStatus = document.getElementById('recognition-status');
-        const startBtn = document.getElementById('start-btn');
-        const resetBtn = document.getElementById('reset-btn');
-        const progressBar = document.getElementById('progress-bar');
-        const progressPercentage = document.getElementById('progress-percentage');
-        const errorContext = document.getElementById('error-context');
-        const errorContextText = document.getElementById('error-context-text');
-        const textStats = document.getElementById('text-stats');
-        const fileUpload = document.getElementById('file-upload');
-        const pasteBtn = document.getElementById('paste-btn');
-        
-        // 页面导航
-        const homeSection = document.getElementById('home-section');
-        const scoreSection = document.getElementById('score-section');
-        const historySection = document.getElementById('history-section');
-        const helpSection = document.getElementById('help-section');
-        const historyDetail = document.getElementById('history-detail');
-        
-        const navHome = document.getElementById('nav-home');
-        const navHistory = document.getElementById('nav-history');
-        const navHelp = document.getElementById('nav-help');
-        const backToHistoryBtn = document.getElementById('back-to-history-btn');
-        const newRecitationBtn = document.getElementById('new-recitation-btn');
-        const saveResultBtn = document.getElementById('save-result-btn');
-        
-        // 评分相关元素
-        const totalScore = document.getElementById('total-score');
-        const accuracyScore = document.getElementById('accuracy-score');
-        const fluencyScore = document.getElementById('fluency-score');
-        const totalWords = document.getElementById('total-words');
-        const correctWords = document.getElementById('correct-words');
-        const errorWords = document.getElementById('error-words');
-        const missingWords = document.getElementById('missing-words');
-        const recitationTime = document.getElementById('recitation-time');
-        
-        // 初始化
-        document.addEventListener('DOMContentLoaded', () => {
-            // 检查浏览器是否支持语音识别
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                initSpeechRecognition();
-            } else {
-                recognitionStatus.textContent = '浏览器不支持语音识别';
-                recognitionStatus.classList.add('text-red-500');
-                startBtn.disabled = true;
-                startBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            }
-            
-            // 初始化事件监听
-            initEventListeners();
-            
-            // 加载历史记录
-            loadHistory();
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex justify-between mb-4">
+                    <h3 class="text-lg font-medium">原文</h3>
+                    <div class="flex space-x-2">
+                        <button id="paste-btn" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm"><i class="fa fa-paste mr-1"></i>粘贴</button>
+                        <label for="file-upload" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm cursor-pointer"><i class="fa fa-upload mr-1"></i>上传</label>
+                        <input id="file-upload" type="file" accept=".txt" class="hidden">
+                    </div>
+                </div>
+                <textarea id="original-text" class="w-full h-80 p-4 border rounded-md resize-none scrollbar-thin" placeholder="请粘贴需要背诵的文字..."></textarea>
+                <div id="text-stats" class="text-xs text-gray-500 mt-2">0 字 | 0 词</div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex justify-between mb-4">
+                    <h3 class="text-lg font-medium">识别结果</h3>
+                    <div id="recognition-status" class="text-sm text-gray-500">准备就绪</div>
+                </div>
+                <div id="recognized-text-container" class="w-full h-80 p-4 border rounded-md overflow-y-auto scrollbar-thin">
+                    <p class="text-gray-400 text-center mt-16">点击开始背书</p>
+                </div>
+                <div id="error-context" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-md hidden">
+                    <h4 class="text-sm font-medium text-red-700 mb-1">错误上下文</h4>
+                    <p id="error-context-text" class="text-sm"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mt-6">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                <div class="w-full md:w-2/3">
+                    <div class="flex justify-between text-sm mb-1">
+                        <span>进度</span><span id="progress-percentage">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div id="progress-bar" class="bg-primary h-2.5 rounded-full" style="width:0"></div>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <button id="reset-btn" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"><i class="fa fa-refresh mr-1"></i>重置</button>
+                    <button id="start-btn" class="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"><i class="fa fa-play mr-1"></i>开始背书</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="score-section" class="hidden bg-white rounded-lg shadow p-6 mt-6">
+        <h2 class="text-xl font-semibold mb-4">背书评分</h2>
+        <div class="grid grid-cols-3 gap-6 mb-6">
+            <div class="p-4 bg-blue-50 rounded flex flex-col items-center">
+                <span class="text-sm text-gray-600">总分</span>
+                <span id="total-score" class="text-4xl font-bold text-primary">0</span>
+            </div>
+            <div class="p-4 bg-green-50 rounded flex flex-col items-center">
+                <span class="text-sm text-gray-600">准确率</span>
+                <span id="accuracy-score" class="text-2xl font-bold text-success">0%</span>
+            </div>
+            <div class="p-4 bg-yellow-50 rounded flex flex-col items-center">
+                <span class="text-sm text-gray-600">流畅度</span>
+                <span id="fluency-score" class="text-2xl font-bold text-warning">0%</span>
+            </div>
+        </div>
+        <div class="flex justify-end mt-6 space-x-3">
+            <button id="new-recitation-btn" class="px-4 py-2 bg-gray-200 rounded">重新背书</button>
+        </div>
+    </section>
+
+    <section id="history-section" class="hidden p-6 bg-white rounded shadow mb-6">
+        <h2 class="text-xl font-semibold mb-4">历史记录</h2>
+        <div id="history-list" class="text-center text-gray-500 py-8">暂无记录</div>
+    </section>
+
+    <section id="help-section" class="hidden p-6 bg-white rounded shadow">
+        <h2 class="text-xl font-semibold mb-4">使用帮助</h2>
+        <div class="space-y-3 text-gray-700">
+            <p>1. 使用 Chrome / Edge 浏览器</p>
+            <p>2. 必须用 http://localhost 打开（不能双击打开）</p>
+            <p>3. 允许麦克风权限</p>
+            <p>4. 朗读时语速适中，咬字清晰</p>
+        </div>
+    </section>
+</main>
+
+<script>
+let recognition = null;
+let isRecording = false;
+let originalText = '';
+let recognizedText = '';
+let comparisonResult = [];
+let startTime = 0;
+let endTime = 0;
+
+const originalTextArea = document.getElementById('original-text');
+const recognizedTextContainer = document.getElementById('recognized-text-container');
+const recognitionStatus = document.getElementById('recognition-status');
+const startBtn = document.getElementById('start-btn');
+const resetBtn = document.getElementById('reset-btn');
+const progressBar = document.getElementById('progress-bar');
+const progressPercentage = document.getElementById('progress-percentage');
+const errorContext = document.getElementById('error-context');
+const errorContextText = document.getElementById('error-context-text');
+const textStats = document.getElementById('text-stats');
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        recognitionStatus.textContent = '❌ 浏览器不支持语音识别';
+        recognitionStatus.classList.add('text-red-500');
+        startBtn.disabled = true;
+        return;
+    }
+    initSpeechRecognition();
+    initEvents();
+});
+
+function initSpeechRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'zh-CN';
+
+    recognition.onstart = () => {
+        isRecording = true;
+        recognitionStatus.innerHTML = '<span class="flex items-center"><span class="wave"></span><span class="wave"></span><span class="wave"></span><span class="wave"></span><span class="wave"></span> 正在识别...</span>';
+        startBtn.innerHTML = '<i class="fa fa-stop mr-1"></i>停止背书';
+        startBtn.classList.remove('bg-primary');
+        startBtn.classList.add('bg-red-500');
+        startTime = Date.now();
+    };
+
+    recognition.onresult = (e) => {
+        let final = '';
+        let inter = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+            if (e.results[i].isFinal) final += e.results[i][0].transcript;
+            else inter += e.results[i][0].transcript;
+        }
+        recognizedText = final || inter;
+        updateRecognized();
+        if (final) compare();
+    };
+
+    recognition.onerror = (e) => {
+        console.error('识别错误', e.error);
+        recognitionStatus.textContent = '❌ 识别失败：' + e.error;
+        recognitionStatus.classList.add('text-red-500');
+        // 修复：这里不再调用不存在的函数
+        resetRecognitionUI();
+    };
+
+    recognition.onend = () => {
+        isRecording = false;
+        if (startBtn.innerHTML.includes('停止')) {
+            endTime = Date.now();
+            calculateScore();
+        }
+        resetRecognitionUI();
+    };
+}
+
+function initEvents() {
+    startBtn.onclick = toggleRecord;
+    resetBtn.onclick = resetAll;
+    originalTextArea.oninput = updateOriginal;
+    document.getElementById('paste-btn').onclick = () => {
+        navigator.clipboard.readText().then(t => {
+            originalTextArea.value = t;
+            updateOriginal();
         });
-        
-        // 初始化语音识别
-        function initSpeechRecognition() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'zh-CN';
-            
-            recognition.onstart = () => {
-                isRecording = true;
-                recognitionStatus.innerHTML = '<span class="flex items-center"><span class="wave"></span><span class="wave"></span><span class="wave"></span><span class="wave"></span><span class="wave"></span> 正在识别...</span>';
-                recognitionStatus.classList.add('text-primary');
-                startBtn.innerHTML = '<i class="fa fa-stop mr-1"></i> 停止背书';
-                startBtn.classList.remove('bg-primary', 'hover:bg-primary/90');
-                startBtn.classList.add('bg-red-500', 'hover:bg-red-600');
-                
-                // 记录开始时间
-                startTime = Date.now();
-            };
-            
-            recognition.onresult = (event) => {
-                let interimTranscript = '';
-                let finalTranscript = '';
-                
-                // 处理识别结果
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
+    };
+    document.getElementById('file-upload').onchange = (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = () => {
+            originalTextArea.value = r.result;
+            updateOriginal();
+        };
+        r.readAsText(f);
+    };
+    document.getElementById('new-recitation-btn').onclick = () => {
+        resetAll();
+        document.getElementById('score-section').classList.add('hidden');
+        document.getElementById('home-section').classList.remove('hidden');
+    };
+    document.getElementById('nav-home').onclick = (e) => {
+        e.preventDefault();
+        document.getElementById('home-section').classList.remove('hidden');
+        document.getElementById('score-section').classList.add('hidden');
+        document.getElementById('history-section').classList.add('hidden');
+        document.getElementById('help-section').classList.add('hidden');
+    };
+    document.getElementById('nav-history').onclick = (e) => {
+        e.preventDefault();
+        document.getElementById('history-section').classList.remove('hidden');
+        document.getElementById('home-section').classList.add('hidden');
+        document.getElementById('score-section').classList.add('hidden');
+        document.getElementById('help-section').classList.add('hidden');
+    };
+    document.getElementById('nav-help').onclick = (e) => {
+        e.preventDefault();
+        document.getElementById('help-section').classList.remove('hidden');
+        document.getElementById('home-section').classList.add('hidden');
+        document.getElementById('score-section').classList.add('hidden');
+        document.getElementById('history-section').classList.add('hidden');
+    };
+}
+
+function toggleRecord() {
+    if (!originalText) {
+        alert('请输入原文');
+        return;
+    }
+    if (isRecording) {
+        recognition.stop();
+    } else {
+        recognizedText = '';
+        comparisonResult = [];
+        recognizedTextContainer.innerHTML = '';
+        errorContext.classList.add('hidden');
+        recognition.start();
+    }
+}
+
+function resetRecognitionUI() {
+    recognitionStatus.textContent = '准备就绪';
+    recognitionStatus.classList.remove('text-red-500');
+    startBtn.innerHTML = '<i class="fa fa-play mr-1"></i>开始背书';
+    startBtn.classList.remove('bg-red-500');
+    startBtn.classList.add('bg-primary');
+}
+
+function resetAll() {
+    if (isRecording) recognition.stop();
+    originalText = '';
+    recognizedText = '';
+    comparisonResult = [];
+    originalTextArea.value = '';
+    recognizedTextContainer.innerHTML = '<p class="text-gray-400 text-center mt-16">点击开始背书</p>';
+    errorContext.classList.add('hidden');
+    progressBar.style.width = '0%';
+    progressPercentage.textContent = '0%';
+    resetRecognitionUI();
+    updateStats();
+}
+
+function updateOriginal() {
+    originalText = originalTextArea.value;
+    updateStats();
+}
+
+function updateStats() {
+    const len = originalText.length;
+    const words = originalText.trim() ? originalText.trim().split(/\s+/).length : 0;
+    textStats.textContent = len + ' 字 | ' + words + ' 词';
+}
+
+function updateRecognized() {
+    if (!recognizedText) {
+        recognizedTextContainer.innerHTML = '<p class="text-gray-400 text-center mt-16">点击开始背书</p>';
+        return;
+    }
+    const p = document.createElement('p');
+    p.className = 'whitespace-pre-wrap';
+    if (comparisonResult.length) {
+        comparisonResult.forEach(item => {
+            const s = document.createElement('span');
+            s.textContent = item.word + ' ';
+            s.className = item.status === 'correct' ? 'word-correct' : item.status === 'error' ? 'word-error' : 'word-missing';
+            p.appendChild(s);
+        });
+    } else {
+        p.textContent = recognizedText;
+    }
+    recognizedTextContainer.innerHTML = '';
+    recognizedTextContainer.appendChild(p);
+    recognizedTextContainer.scrollTop = recognizedTextContainer.scrollHeight;
+}
+
+function compare() {
+    if (!originalText || !recognizedText) return;
+    const O = originalText.toLowerCase().split(/\s+/);
+    const R = recognizedText.toLowerCase().split(/\s+/);
+    comparisonResult = [];
+    let oi = 0, ri = 0;
+    while (oi < O.length && ri < R.length) {
+        if (O[oi] === R[ri]) {
+            comparisonResult.push({ word: R[ri], status: 'correct' });
+            oi++; ri++;
+        } else {
+            let found = false;
+            for (let j = 1; j <= 3 && oi + j < O.length; j++) {
+                if (O[oi + j] === R[ri]) {
+                    for (let k = 0; k < j; k++) {
+                        comparisonResult.push({ word: O[oi + k], status: 'missing' });
                     }
-                }
-                
-                // 更新识别文本
-                recognizedText = finalTranscript || interimTranscript;
-                
-                // 更新UI显示
-                updateRecognizedText();
-                
-                // 如果有最终结果，进行文本比对
-                if (finalTranscript) {
-                    compareTextWithOriginal();
-                }
-            };
-            
-            recognition.onerror = (event) => {
-                console.error('语音识别错误:', event.error);
-                recognitionStatus.textContent = `错误: ${event.error}`;
-                recognitionStatus.classList.add('text-red-500');
-                resetRecognition();
-            };
-            
-            recognition.onend = () => {
-                isRecording = false;
-                if (startBtn.innerHTML.includes('停止背书')) {
-                    // 如果是用户主动停止，则计算评分
-                    endTime = Date.now();
-                    calculateAndShowScore();
-                }
-                resetRecognitionUI();
-            };
-        }
-        
-        // 初始化事件监听
-        function initEventListeners() {
-            // 开始/停止按钮
-            startBtn.addEventListener('click', toggleRecognition);
-            
-            // 重置按钮
-            resetBtn.addEventListener('click', resetAll);
-            
-            // 原文文本框事件
-            originalTextArea.addEventListener('input', updateOriginalText);
-            
-            // 文件上传
-            fileUpload.addEventListener('change', handleFileUpload);
-            
-            // 粘贴按钮
-            pasteBtn.addEventListener('click', () => {
-                originalTextArea.focus();
-                document.execCommand('paste');
-            });
-            
-            // 导航事件
-            navHome.addEventListener('click', (e) => {
-                e.preventDefault();
-                showSection(homeSection);
-                hideSection(scoreSection);
-                hideSection(historySection);
-                hideSection(helpSection);
-            });
-            
-            navHistory.addEventListener('click', (e) => {
-                e.preventDefault();
-                showSection(historySection);
-                hideSection(homeSection);
-                hideSection(scoreSection);
-                hideSection(helpSection);
-                hideSection(historyDetail);
-                
-                // 加载历史记录
-                loadHistory();
-                
-                // 更新进步曲线
-                updateProgressChart();
-            });
-            
-            navHelp.addEventListener('click', (e) => {
-                e.preventDefault();
-                showSection(helpSection);
-                hideSection(homeSection);
-                hideSection(scoreSection);
-                hideSection(historySection);
-            });
-            
-            // 返回历史记录列表
-            backToHistoryBtn.addEventListener('click', () => {
-                showSection(historySection);
-                hideSection(historyDetail);
-            });
-            
-            // 新的背书
-            newRecitationBtn.addEventListener('click', () => {
-                resetAll();
-                showSection(homeSection);
-                hideSection(scoreSection);
-            });
-            
-            // 保存结果
-            saveResultBtn.addEventListener('click', saveResult);
-        }
-        
-        // 切换语音识别状态
-        function toggleRecognition() {
-            if (!originalText.trim()) {
-                alert('请先输入或上传原文');
-                return;
-            }
-            
-            if (isRecording) {
-                recognition.stop();
-            } else {
-                // 清空之前的结果
-                recognizedText = '';
-                comparisonResult = [];
-                recognizedTextContainer.innerHTML = '';
-                errorContext.classList.add('hidden');
-                
-                // 开始识别
-                recognition.start();
-            }
-        }
-        
-        // 重置语音识别UI
-        function resetRecognitionUI() {
-            recognitionStatus.textContent = '准备就绪';
-            recognitionStatus.classList.remove('text-primary', 'text-red-500');
-            startBtn.innerHTML = '<i class="fa fa-play mr-1"></i> 开始背书';
-            startBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
-            startBtn.classList.add('bg-primary', 'hover:bg-primary/90');
-        }
-        
-        // 重置所有状态
-        function resetAll() {
-            if (isRecording) {
-                recognition.stop();
-            }
-            
-            originalText = '';
-            recognizedText = '';
-            comparisonResult = [];
-            
-            originalTextArea.value = '';
-            recognizedTextContainer.innerHTML = '<p class="text-gray-400 text-center mt-16">点击下方"开始背书"按钮开始...</p>';
-            errorContext.classList.add('hidden');
-            
-            progressBar.style.width = '0%';
-            progressPercentage.textContent = '0%';
-            
-            resetRecognitionUI();
-            updateTextStats();
-            
-            // 隐藏评分部分
-            hideSection(scoreSection);
-            showSection(homeSection);
-        }
-        
-        // 更新原文
-        function updateOriginalText() {
-            originalText = originalTextArea.value;
-            updateTextStats();
-        }
-        
-        // 更新文本统计信息
-        function updateTextStats() {
-            const charCount = originalText.length;
-            const wordCount = originalText.trim() ? originalText.trim().split(/\s+/).length : 0;
-            textStats.textContent = `${charCount} 字 | ${wordCount} 词`;
-        }
-        
-        // 处理文件上传
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                originalTextArea.value = e.target.result;
-                updateOriginalText();
-            };
-            reader.readAsText(file);
-        }
-        
-        // 更新识别文本显示
-        function updateRecognizedText() {
-            if (!recognizedText) {
-                recognizedTextContainer.innerHTML = '<p class="text-gray-400 text-center mt-16">点击下方"开始背书"按钮开始...</p>';
-                return;
-            }
-            
-            // 清空容器
-            recognizedTextContainer.innerHTML = '';
-            
-            // 创建段落元素
-            const paragraph = document.createElement('p');
-            paragraph.className = 'whitespace-pre-wrap';
-            
-            // 如果有比对结果，显示高亮文本
-            if (comparisonResult.length > 0) {
-                comparisonResult.forEach(item => {
-                    const span = document.createElement('span');
-                    span.textContent = item.word + ' ';
-                    
-                    if (item.status === 'correct') {
-                        span.className = 'word-correct';
-                    } else if (item.status === 'error') {
-                        span.className = 'word-error';
-                    } else if (item.status === 'missing') {
-                        span.className = 'word-missing';
-                    }
-                    
-                    paragraph.appendChild(span);
-                });
-            } else {
-                // 否则显示原始识别文本
-                paragraph.textContent = recognizedText;
-            }
-            
-            recognizedTextContainer.appendChild(paragraph);
-            
-            // 滚动到底部
-            recognizedTextContainer.scrollTop = recognizedTextContainer.scrollHeight;
-        }
-        
-        // 与原文进行比对
-        function compareTextWithOriginal() {
-            if (!originalText || !recognizedText) return;
-            
-            // 将文本转换为单词数组
-            const originalWords = originalText.toLowerCase().split(/\s+/);
-            const recognizedWords = recognizedText.toLowerCase().split(/\s+/);
-            
-            // 初始化比对结果数组
-            comparisonResult = [];
-            
-            // 逐词比对
-            let originalIndex = 0;
-            let recognizedIndex = 0;
-            
-            while (originalIndex < originalWords.length && recognizedIndex < recognizedWords.length) {
-                if (originalWords[originalIndex] === recognizedWords[recognizedIndex]) {
-                    // 单词匹配
-                    comparisonResult.push({
-                        word: recognizedWords[recognizedIndex],
-                        status: 'correct',
-                        originalIndex,
-                        recognizedIndex
-                    });
-                    originalIndex++;
-                    recognizedIndex++;
-                } else {
-                    // 单词不匹配，寻找下一个匹配点
-                    let foundMatch = false;
-                    for (let i = 1; i <= 3 && originalIndex + i < originalWords.length; i++) {
-                        if (originalWords[originalIndex + i] === recognizedWords[recognizedIndex]) {
-                            // 发现漏读
-                            for (let j = 0; j < i; j++) {
-                                comparisonResult.push({
-                                    word: originalWords[originalIndex + j],
-                                    status: 'missing',
-                                    originalIndex: originalIndex + j,
-                                    recognizedIndex: null
-                                });
-                            }
-                            originalIndex += i;
-                            foundMatch = true;
-                            break;
-                        }
-                    }
-                    
-                    if (!foundMatch) {
-                        // 发现错读或额外添加的词
-                        comparisonResult.push({
-                            word: recognizedWords[recognizedIndex],
-                            status: 'error',
-                            originalIndex: null,
-                            recognizedIndex
-                        });
-                        
-                        // 显示错误上下文
-                        showErrorContext(recognizedIndex, recognizedWords);
-                        
-                        recognizedIndex++;
-                    }
+                    oi += j;
+                    found = true;
+                    break;
                 }
             }
-            
-            // 处理剩余的原文单词
-            while (originalIndex < originalWords.length) {
-                comparisonResult.push({
-                    word: originalWords[originalIndex],
-                    status: 'missing',
-                    originalIndex,
-                    recognizedIndex: null
-                });
-                originalIndex++;
-            }
-            
-            // 处理剩余的识别单词
-            while (recognizedIndex < recognizedWords.length) {
-                comparisonResult.push({
-                    word: recognizedWords[recognizedIndex],
-                    status: 'error',
-                    originalIndex: null,
-                    recognizedIndex
-                });
-                
-                // 显示错误上下文
-                showErrorContext(recognizedIndex, recognizedWords);
-                
-                recognizedIndex++;
-            }
-            
-            // 更新显示
-            updateRecognizedText();
-            
-            // 更新进度
-            updateProgress();
-        }
-        
-        // 显示错误上下文
-        function showErrorContext(errorIndex, words) {
-            // 获取错误单词前后各5个单词
-            const start = Math.max(0, errorIndex - 5);
-            const end = Math.min(words.length, errorIndex + 6);
-            
-            let contextText = '';
-            for (let i = start; i < end; i++) {
-                if (i === errorIndex) {
-                    contextText += `<span class="text-red-500 font-medium">${words[i]}</span> `;
-                } else {
-                    contextText += `${words[i]} `;
-                }
-            }
-            
-            errorContextText.innerHTML = contextText;
-            errorContext.classList.remove('hidden');
-            
-            // 高亮错误上下文区域
-            errorContext.classList.add('highlight-error');
-            setTimeout(() => {
-                errorContext.classList.remove('highlight-error');
-            }, 1000);
-        }
-        
-        // 更新进度
-        function updateProgress() {
-            if (!originalText) return;
-            
-            const originalWords = originalText.trim().split(/\s+/);
-            const correctCount = comparisonResult.filter(item => item.status === 'correct').length;
-            const progress = Math.min(100, Math.round((correctCount / originalWords.length) * 100));
-            
-            progressBar.style.width = `${progress}%`;
-            progressPercentage.textContent = `${progress}%`;
-            
-            // 如果进度达到100%，自动停止识别
-            if (progress === 100 && isRecording) {
-                setTimeout(() => {
-                    recognition.stop();
-                }, 1000);
+            if (!found) {
+                comparisonResult.push({ word: R[ri], status: 'error' });
+                showContext(ri, R);
+                ri++;
             }
         }
-        
-        // 计算并显示评分
-        function calculateAndShowScore() {
-            if (!originalText || !recognizedText) return;
-            
-            const originalWords = originalText.trim().split(/\s+/);
-            const correctCount = comparisonResult.filter(item => item.status === 'correct').length;
-            const errorCount = comparisonResult.filter(item => item.status === 'error').length;
-            const missingCount = comparisonResult.filter(item => item.status === 'missing').length;
-            
-            // 计算准确率
-            const accuracy = originalWords.length > 0 ? Math.round((correctCount / originalWords.length) * 100) : 0;
-            
-            // 计算用时（秒）
-            const duration = endTime - startTime;
-            const durationSeconds = Math.round(duration / 1000);
-            
-            // 计算流畅度（基于识别中断次数和总时长）
-            const interruptions = errorCount + missingCount;
-            const wordsPerMinute = originalWords.length / (duration / 60000);
-            const fluency = Math.min(100, Math.round(Math.min(1, wordsPerMinute / 120) * (1 - interruptions / originalWords.length) * 100));
-            
-            // 计算综合得分（权重可调整）
-            const score = Math.round(accuracy * 0.6 + fluency * 0.4);
-            
-            // 更新UI
-            totalScore.textContent = score;
-            accuracyScore.textContent = `${accuracy}%`;
-            fluencyScore.textContent = `${fluency}%`;
-            totalWords.textContent = originalWords.length;
-            correctWords.textContent = correctCount;
-            errorWords.textContent = errorCount;
-            missingWords.textContent = missingCount;
-            recitationTime.textContent = `${durationSeconds}秒`;
-            
-            // 更新错误分布图表
-            updateErrorChart(correctCount, errorCount, missingCount);
-            
-            // 显示评分部分
-            hideSection(homeSection);
-            showSection(scoreSection);
-        }
-        
-        // 更新错误分布图表
-        function updateErrorChart(correct, error, missing) {
-            const ctx = document.getElementById('error-chart').getContext('2d');
-            
-            // 如果已存在图表，销毁它
-            if (errorChart) {
-                errorChart.destroy();
-            }
-            
-            errorChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['正确', '错误', '漏读'],
-                    datasets: [{
-                        data: [correct, error, missing],
-                        backgroundColor: [
-                            '#10b981',
-                            '#ef4444',
-                            '#f59e0b'
-                        ],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-        }
-        
-        // 更新进步曲线图表
-        function updateProgressChart() {
-            const history = getHistory();
-            const ctx = document.getElementById('progress-chart').getContext('2d');
-            
-            // 如果历史记录少于2条，不显示图表
-            if (history.length < 2) {
-                if (progressChart) {
-                    progressChart.destroy();
-                    progressChart = null;
-                }
-                return;
-            }
-            
-            // 准备数据
-            const labels = history.map(item => {
-                const date = new Date(item.timestamp);
-                return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}`;
-            });
-            
-            const scores = history.map(item => item.score);
-            
-            // 如果已存在图表，销毁它
-            if (progressChart) {
-                progressChart.destroy();
-            }
-            
-            progressChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: '背书得分',
-                        data: scores,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#3b82f6'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            min: Math.max(0, Math.min(...scores) - 10),
-                            max: Math.min(100, Math.max(...scores) + 10)
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-        }
-        
-        // 保存结果
-        function saveResult() {
-            if (!originalText || !recognizedText) return;
-            
-            const originalWords = originalText.trim().split(/\s+/);
-            const correctCount = comparisonResult.filter(item => item.status === 'correct').length;
-            const errorCount = comparisonResult.filter(item => item.status === 'error').length;
-            const missingCount = comparisonResult.filter(item => item.status === 'missing').length;
-            
-            // 计算准确率
-            const accuracy = originalWords.length > 0 ? Math.round((correctCount / originalWords.length) * 100) : 0;
-            
-            // 计算用时（秒）
-            const duration = endTime - startTime;
-            const durationSeconds = Math.round(duration / 1000);
-            
-            // 计算流畅度
-            const interruptions = errorCount + missingCount;
-            const wordsPerMinute = originalWords.length / (duration / 60000);
-            const fluency = Math.min(100, Math.round(Math.min(1, wordsPerMinute / 120) * (1 - interruptions / originalWords.length) * 100));
-            
-            // 计算综合得分
-            const score = Math.round(accuracy * 0.6 + fluency * 0.4);
-            
-            // 创建历史记录对象
-            const historyItem = {
-                id: Date.now(),
-                text: originalText.substring(0, 50) + (originalText.length > 50 ? '...' : ''),
-                fullText: originalText,
-                recognizedText: recognizedText,
-                score,
-                accuracy,
-                fluency,
-                totalWords: originalWords.length,
-                correctWords: correctCount,
-                errorWords: errorCount,
-                missingWords: missingCount,
-                duration: durationSeconds,
-                timestamp: Date.now()
-            };
-            
-            // 保存到localStorage
-            const history = getHistory();
-            history.push(historyItem);
-            
-            // 只保留最近20条记录
-            if (history.length > 20) {
-                history.shift();
-            }
-            
-            localStorage.setItem('recitationHistory', JSON.stringify(history));
-            
-            // 显示成功提示
-            alert('结果已保存');
-        }
-        
-        // 加载历史记录
-        function loadHistory() {
-            const history = getHistory();
-            const historyList = document.getElementById('history-list');
-            
-            // 清空列表
-            historyList.innerHTML = '';
-            
-            if (history.length === 0) {
-                historyList.innerHTML = '<div class="text-center text-gray-500 py-8">暂无历史记录</div>';
-                return;
-            }
-            
-            // 按时间倒序排列
-            history.sort((a, b) => b.timestamp - a.timestamp);
-            
-            // 添加历史记录项
-            history.forEach(item => {
-                const date = new Date(item.timestamp);
-                const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-                
-                const historyItem = document.createElement('div');
-                historyItem.className = 'p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors';
-                historyItem.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="font-medium text-gray-800 mb-1">${item.text}</h4>
-                            <p class="text-sm text-gray-500">${dateStr}</p>
-                        </div>
-                        <div class="flex flex-col items-end">
-                            <span class="text-lg font-bold ${getScoreColorClass(item.score)}">${item.score}</span>
-                            <span class="text-xs text-gray-500">总分</span>
-                        </div>
-                    </div>
-                    <div class="mt-3 grid grid-cols-3 gap-2">
-                        <div class="flex flex-col items-center p-2 bg-gray-50 rounded">
-                            <span class="text-sm font-medium text-success">${item.accuracy}%</span>
-                            <span class="text-xs text-gray-500">准确率</span>
-                        </div>
-                        <div class="flex flex-col items-center p-2 bg-gray-50 rounded">
-                            <span class="text-sm font-medium text-warning">${item.fluency}%</span>
-                            <span class="text-xs text-gray-500">流畅度</span>
-                        </div>
-                        <div class="flex flex-col items-center p-2 bg-gray-50 rounded">
-                            <span class="text-sm font-medium text-gray-700">${item.duration}秒</span>
-                            <span class="text-xs text-gray-500">用时</span>
-                        </div>
-                    </div>
-                `;
-                
-                // 添加点击事件
-                historyItem.addEventListener('click', () => showHistoryDetail(item));
-                
-                historyList.appendChild(historyItem);
-            });
-        }
-        
-        // 显示历史记录详情
-        function showHistoryDetail(item) {
-            const historyDetailContent = document.getElementById('history-detail-content');
-            
-            const date = new Date(item.timestamp);
-            const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-            
-            historyDetailContent.innerHTML = `
-                <div class="space-y-6">
-                    <!-- 基本信息 -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="flex flex-col items-center justify-center p-4 bg-blue-50 rounded-lg">
-                            <span class="text-sm text-gray-600 mb-1">总分</span>
-                            <span class="text-4xl font-bold ${getScoreColorClass(item.score)}">${item.score}</span>
-                        </div>
-                        
-                        <div class="flex flex-col items-center justify-center p-4 bg-green-50 rounded-lg">
-                            <span class="text-sm text-gray-600 mb-1">准确率</span>
-                            <span class="text-2xl font-bold text-success">${item.accuracy}%</span>
-                        </div>
-                        
-                        <div class="flex flex-col items-center justify-center p-4 bg-yellow-50 rounded-lg">
-                            <span class="text-sm text-gray-600 mb-1">流畅度</span>
-                            <span class="text-2xl font-bold text-warning">${item.fluency}%</span>
-                        </div>
-                    </div>
-                    
-                    <!-- 详细统计 -->
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
-                            <span class="text-lg font-medium text-gray-800">${item.totalWords}</span>
-                            <span class="text-sm text-gray-500">总字数</span>
-                        </div>
-                        <div class="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
-                            <span class="text-lg font-medium text-success">${item.correctWords}</span>
-                            <span class="text-sm text-gray-500">正确字数</span>
-                        </div>
-                        <div class="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
-                            <span class="text-lg font-medium text-red-500">${item.errorWords}</span>
-                            <span class="text-sm text-gray-500">错误字数</span>
-                        </div>
-                        <div class="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
-                            <span class="text-lg font-medium text-warning">${item.missingWords}</span>
-                            <span class="text-sm text-gray-500">漏读字数</span>
-                        </div>
-                    </div>
-                    
-                    <!-- 原文与识别结果 -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h3 class="text-lg font-medium text-gray-700 mb-2">原文</h3>
-                            <div class="p-4 bg-gray-50 rounded-lg max-h-60 overflow-y-auto scrollbar-thin">
-                                <p class="whitespace-pre-wrap">${item.fullText}</p>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-medium text-gray-700 mb-2">识别结果</h3>
-                            <div class="p-4 bg-gray-50 rounded-lg max-h-60 overflow-y-auto scrollbar-thin">
-                                <p class="whitespace-pre-wrap">${item.recognizedText}</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 时间信息 -->
-                    <div class="text-right text-sm text-gray-500">
-                        背书用时：${item.duration}秒 | 完成时间：${dateStr}
-                    </div>
-                </div>
-            `;
-            
-            // 显示详情页面
-            showSection(historyDetail);
-            hideSection(historySection);
-        }
-        
-        // 获取分数对应的颜色类
-        function getScoreColorClass(score) {
-            if (score >= 90) return 'text-success';
-            if (score >= 70) return 'text-primary';
-            if (score >= 60) return 'text-warning';
-            return 'text-red-500';
-        }
-        
-        // 获取历史记录
-        function getHistory() {
-            return JSON.parse(localStorage.getItem('recitationHistory') || '[]');
-        }
-        
-        // 显示元素
-        function showSection(element) {
-            element.classList.remove('hidden');
-        }
-        
-        // 隐藏元素
-        function hideSection(element) {
-            element.classList.add('hidden');
-        }
-    </script>
+    }
+    while (oi < O.length) {
+        comparisonResult.push({ word: O[oi++], status: 'missing' });
+    }
+    while (ri < R.length) {
+        comparisonResult.push({ word: R[ri], status: 'error' });
+        showContext(ri, R);
+        ri++;
+    }
+    updateRecognized();
+    updateProgress();
+}
+
+function showContext(idx, words) {
+    const s = Math.max(0, idx - 5);
+    const e = Math.min(words.length, idx + 6);
+    let t = '';
+    for (let i = s; i < e; i++) {
+        if (i === idx) t += `<span class="text-red-500 font-medium">${words[i]}</span> `;
+        else t += words[i] + ' ';
+    }
+    errorContextText.innerHTML = t;
+    errorContext.classList.remove('hidden');
+}
+
+function updateProgress() {
+    if (!originalText) return;
+    const total = originalText.trim().split(/\s+/).length;
+    const correct = comparisonResult.filter(x => x.status === 'correct').length;
+    const p = Math.min(100, Math.round(correct / total * 100));
+    progressBar.style.width = p + '%';
+    progressPercentage.textContent = p + '%';
+}
+
+function calculateScore() {
+    if (!originalText || !recognizedText) return;
+    const O = originalText.trim().split(/\s+/);
+    const correct = comparisonResult.filter(x => x.status === 'correct').length;
+    const error = comparisonResult.filter(x => x.status === 'error').length;
+    const missing = comparisonResult.filter(x => x.status === 'missing').length;
+    const accuracy = O.length ? Math.round(correct / O.length * 100) : 0;
+    const time = Math.round((endTime - startTime) / 1000);
+    const fluency = Math.max(0, 100 - (error + missing) * 5 - time / 2);
+    const score = Math.round(accuracy * 0.6 + fluency * 0.4);
+
+    document.getElementById('total-score').textContent = score;
+    document.getElementById('accuracy-score').textContent = accuracy + '%';
+    document.getElementById('fluency-score').textContent = Math.round(fluency) + '%';
+
+    document.getElementById('home-section').classList.add('hidden');
+    document.getElementById('score-section').classList.remove('hidden');
+}
+</script>
 </body>
 </html>
