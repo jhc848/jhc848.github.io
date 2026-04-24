@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>作业管理大师</title>
-    <!-- 引入外部依赖库 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
     
-    <!-- Tailwind 配置 -->
     <script>
         tailwind.config = {
             theme: {
@@ -33,636 +33,593 @@
     
     <style type="text/tailwindcss">
         @layer utilities {
-            .card-shadow {
-                box-shadow: 0 2px 14px 0 rgba(0, 0, 0, 0.06);
-            }
-            .btn-hover {
-                @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5;
-            }
-            .input-focus {
-                @apply focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all;
-            }
+            .card-shadow { box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.05); }
+            .btn-hover { @apply transition-all duration-300 hover:shadow-md hover:-translate-y-0.5; }
+            .input-focus { @apply focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all; }
+            .btn-sm { @apply px-2 py-1 rounded text-xs font-medium cursor-pointer btn-hover; }
         }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- 顶部导航栏 -->
-    <header class="bg-white card-shadow sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <i class="fa fa-graduation-cap text-primary text-2xl"></i>
-                <h1 class="text-xl md:text-2xl font-bold text-gray-800">作业管理大师</h1>
-            </div>
-            <div class="text-sm text-gray-500">
-                <span id="current-date"></span>
+<header class="bg-white card-shadow sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="fa fa-graduation-cap text-primary text-xl"></i>
+            <h1 class="text-lg font-bold text-gray-800">作业管理大师</h1>
+        </div>
+        <div class="text-sm text-gray-500"><span id="current-date"></span></div>
+    </div>
+</header>
+
+<main class="container mx-auto px-4 py-4">
+    <!-- 班级管理 -->
+    <div class="bg-white rounded-lg p-4 card-shadow mb-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+            <h2 class="text-base font-semibold text-gray-800 flex items-center"><i class="fa fa-users text-primary mr-2"></i>班级管理</h2>
+            <div class="flex gap-2">
+                <input type="text" id="classNameInput" placeholder="输入新班级名称" class="px-3 py-2 border border-gray-300 rounded-lg input-focus flex-1 md:w-auto">
+                <button id="addClassBtn" class="bg-primary text-white px-3 py-2 rounded-lg btn-hover"><i class="fa fa-plus mr-1"></i>添加班级</button>
             </div>
         </div>
-    </header>
+        <div class="flex flex-wrap gap-2" id="classList"></div>
+    </div>
 
-    <main class="container mx-auto px-4 py-6">
-        <!-- 班级管理区域 -->
-        <div class="bg-white rounded-xl p-5 card-shadow mb-6">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
-                    <i class="fa fa-users text-primary mr-2"></i>班级管理
-                </h2>
-                <div class="flex gap-2">
-                    <input type="text" id="classNameInput" placeholder="输入新班级名称" 
-                        class="px-3 py-2 border border-gray-300 rounded-lg input-focus flex-1 md:w-auto">
-                    <button id="addClassBtn" class="bg-primary text-white px-4 py-2 rounded-lg btn-hover">
-                        <i class="fa fa-plus mr-1"></i>添加班级
-                    </button>
-                </div>
-            </div>
-            
-            <div class="flex flex-wrap gap-2 mb-4" id="classList">
-                <!-- 班级标签将动态生成 -->
-            </div>
-        </div>
-
-        <!-- 学生添加区域 -->
-        <div class="bg-white rounded-xl p-5 card-shadow mb-6">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
-                    <i class="fa fa-user-plus text-primary mr-2"></i>添加学生
-                </h2>
+    <!-- 主功能区 -->
+    <div id="mainFunctions" class="hidden">
+        <div class="bg-white rounded-lg p-4 card-shadow mb-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+                <h2 class="text-base font-semibold text-gray-800 flex items-center"><i class="fa fa-user-plus text-primary mr-2"></i>添加学生</h2>
                 <div class="flex flex-wrap gap-2">
-                    <!-- 手动添加 -->
                     <div class="flex gap-2">
-                        <input type="text" id="studentName" placeholder="姓名" 
-                            class="px-3 py-2 border border-gray-300 rounded-lg input-focus w-24">
-                        <input type="text" id="studentId" placeholder="学号" 
-                            class="px-3 py-2 border border-gray-300 rounded-lg input-focus w-28">
-                        <button id="addStudentBtn" class="bg-success text-white px-3 py-2 rounded-lg btn-hover">
-                            <i class="fa fa-check mr-1"></i>手动添加
-                        </button>
+                        <input type="text" id="studentName" placeholder="姓名" class="px-3 py-2 border border-gray-300 rounded-lg input-focus w-24">
+                        <input type="text" id="studentId" placeholder="学号" class="px-3 py-2 border border-gray-300 rounded-lg input-focus w-28">
+                        <button id="addStudentBtn" class="bg-success text-white px-3 py-2 rounded-lg btn-hover"><i class="fa fa-check mr-1"></i>手动添加</button>
                     </div>
-                    
-                    <!-- Excel导入 -->
                     <label class="bg-warning text-white px-3 py-2 rounded-lg btn-hover cursor-pointer flex items-center">
-                        <i class="fa fa-file-excel-o mr-1"></i>导入Excel
-                        <input type="file" id="excelFile" accept=".xlsx,.xls" class="hidden">
+                        <i class="fa fa-file-excel-o mr-1"></i>导入Excel<input type="file" id="excelFile" accept=".xlsx,.xls" class="hidden">
                     </label>
                 </div>
             </div>
-            
-            <div class="text-sm text-gray-500 mb-2">
-                <i class="fa fa-info-circle mr-1"></i>Excel需包含【姓名】【学号】表头，将自动识别导入
-            </div>
+            <div class="text-xs text-gray-500"><i class="fa fa-info-circle mr-1"></i>Excel需包含【姓名】【学号】表头</div>
         </div>
 
-        <!-- 核心功能区 -->
-        <div class="bg-white rounded-xl p-5 card-shadow mb-6">
-            <div class="flex flex-wrap gap-4 mb-4">
-                <button id="scanHomeworkBtn" class="bg-danger text-white px-6 py-3 rounded-lg btn-hover flex items-center">
-                    <i class="fa fa-qrcode mr-2 text-xl"></i>统计作业（扫码）
-                </button>
-                <button id="refreshStatusBtn" class="bg-gray-600 text-white px-6 py-3 rounded-lg btn-hover flex items-center">
-                    <i class="fa fa-refresh mr-2"></i>刷新状态
-                </button>
-                <div class="ml-auto flex items-center gap-2 text-gray-700">
-                    <span>已提交：</span>
-                    <span id="submittedCount" class="font-bold text-success">0</span>
-                    <span class="mx-2">|</span>
-                    <span>总人数：</span>
-                    <span id="totalCount" class="font-bold primary">0</span>
+        <div class="bg-white rounded-lg p-4 card-shadow mb-4">
+            <div class="flex flex-wrap gap-3 mb-3">
+                <button id="scanHomeworkBtn" class="bg-danger text-white px-4 py-2 rounded-lg btn-hover flex items-center"><i class="fa fa-qrcode mr-2"></i>扫码统计</button>
+                <button id="refreshStatusBtn" class="bg-gray-600 text-white px-4 py-2 rounded-lg btn-hover flex items-center"><i class="fa fa-refresh mr-2"></i>重置状态</button>
+                <div class="ml-auto flex items-center gap-2 text-sm text-gray-700">
+                    <span>已提交：</span><span id="submittedCount" class="font-bold text-success">0</span>
+                    <span class="mx-1">|</span>
+                    <span>总人数：</span><span id="totalCount" class="font-bold text-primary">0</span>
                 </div>
             </div>
-
-            <!-- 扫码弹窗（默认隐藏） -->
             <div id="scanModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
-                <div class="bg-white rounded-xl w-full max-w-lg p-5 relative">
-                    <button id="closeScanBtn" class="absolute right-4 top-4 text-gray-500 hover:text-gray-800">
-                        <i class="fa fa-times text-xl"></i>
-                    </button>
-                    <h3 class="text-lg font-semibold mb-4 text-center">扫描作业二维码</h3>
-                    <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden mb-4">
+                <div class="bg-white rounded-lg w-full max-w-lg p-4 relative">
+                    <button id="closeScanBtn" class="absolute right-3 top-3 text-gray-500 hover:text-gray-800"><i class="fa fa-times"></i></button>
+                    <h3 class="text-base font-semibold mb-3 text-center">扫描作业二维码</h3>
+                    <div class="relative w-full aspect-video bg-black rounded overflow-hidden mb-3">
                         <video id="video" class="w-full h-full object-cover"></video>
                         <canvas id="scanCanvas" class="absolute inset-0 w-full h-full hidden"></canvas>
                     </div>
-                    <p id="scanResult" class="text-center text-gray-700 min-h-6"></p>
+                    <p id="scanResult" class="text-center text-gray-700 min-h-5 text-sm"></p>
+                    <div id="studentInfo" class="mt-3 p-2 bg-gray-50 rounded text-center hidden">
+                        <p class="font-medium text-sm" id="infoName"></p>
+                        <p class="text-xs text-gray-500" id="infoId"></p>
+                        <p class="mt-1 text-sm font-medium" id="infoStatus"></p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- 学生列表区域 -->
-        <div class="bg-white rounded-xl p-5 card-shadow">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
-                    <i class="fa fa-list-alt text-primary mr-2"></i>
-                    <span id="studentListTitle">学生列表</span>
-                </h2>
+        <!-- 二维码管理弹窗 -->
+        <div id="qrModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg w-full max-w-md p-5 relative">
+                <button id="closeQrBtn" class="absolute right-3 top-3 text-gray-500 hover:text-gray-800"><i class="fa fa-times"></i></button>
+                <h3 class="text-lg font-semibold text-center mb-4">
+                    管理<span id="qrStudentName" class="text-primary font-bold px-1"></span>的二维码
+                </h3>
+                <div class="flex justify-center mb-4">
+                    <canvas id="previewCanvas" width="180" height="180" class="border rounded bg-white"></canvas>
+                </div>
+                <div class="flex justify-center gap-2">
+                    <button id="genQrBtn" class="bg-primary text-white px-4 py-2 rounded-lg btn-hover">生成二维码</button>
+                    <button id="exportQrBtn" class="bg-success text-white px-4 py-2 rounded-lg btn-hover">导出</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 备注弹窗 -->
+        <div id="noteModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg w-full max-w-md p-5 relative">
+                <button id="closeNoteBtn" class="absolute right-3 top-3 text-gray-500 hover:text-gray-800"><i class="fa fa-times"></i></button>
+                <h3 class="text-lg font-semibold text-center mb-4">
+                    给<span id="noteStudentName" class="text-primary font-bold px-1"></span>添加备注
+                </h3>
+                <textarea id="noteInput" class="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg input-focus mb-4" placeholder="请输入备注内容..."></textarea>
+                <div class="flex justify-center">
+                    <button id="saveNoteBtn" class="bg-primary text-white px-4 py-2 rounded-lg btn-hover">保存备注</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 两栏学生列表 -->
+        <div class="bg-white rounded-lg p-4 card-shadow">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-base font-semibold text-gray-800 flex items-center"><i class="fa fa-list-alt text-primary mr-2"></i><span id="studentListTitle">学生列表</span></h2>
                 <div class="flex gap-2">
-                    <button id="exportAllQrBtn" class="bg-warning text-white px-4 py-2 rounded-lg btn-hover">
-                        <i class="fa fa-download mr-1"></i>导出全部二维码
-                    </button>
-                    <button id="generateAllQrBtn" class="bg-primary/90 text-white px-4 py-2 rounded-lg btn-hover">
-                        <i class="fa fa-qrcode mr-1"></i>生成全部二维码
-                    </button>
+                    <button id="exportAllQrBtn" class="bg-warning text-white px-3 py-2 rounded-lg btn-hover text-sm"><i class="fa fa-download mr-1"></i>导出全部</button>
+                    <button id="generateAllQrBtn" class="bg-primary/90 text-white px-3 py-2 rounded-lg btn-hover text-sm"><i class="fa fa-qrcode mr-1"></i>生成全部</button>
                 </div>
             </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="border-b border-gray-200">
-                            <th class="py-3 px-4 font-semibold">序号</th>
-                            <th class="py-3 px-4 font-semibold">学号</th>
-                            <th class="py-3 px-4 font-semibold">姓名</th>
-                            <th class="py-3 px-4 font-semibold">班级</th>
-                            <th class="py-3 px-4 font-semibold">二维码</th>
-                            <th class="py-3 px-4 font-semibold">提交状态</th>
-                            <th class="py-3 px-4 font-semibold">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="studentTableBody">
-                        <!-- 学生数据将动态生成 -->
-                    </tbody>
-                </table>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 未提交 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2 bg-gray-100 p-2 rounded">📝 未提交</h3>
+                    <div id="unsubmittedList" class="space-y-2 max-h-[500px] overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- 已提交 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2 bg-success/10 p-2 rounded">✅ 已提交</h3>
+                    <div id="submittedList" class="space-y-2 max-h-[500px] overflow-y-auto pr-1"></div>
+                </div>
             </div>
         </div>
-    </main>
+    </div>
+</main>
 
-    <footer class="mt-10 py-6 text-center text-gray-500 text-sm">
-        <p>作业管理大师 © 纯前端版 | 数据本地存储，安全可靠</p>
-    </footer>
+<footer class="mt-6 py-4 text-center text-gray-500 text-xs">
+    <p>© 2026 【蒋昊辰】版权所有・作业管理大师</p>
+</footer>
 
-    <script>
-        // 全局数据
-        let currentClass = "默认班级";
-        let classes = JSON.parse(localStorage.getItem("homeworkClasses")) || ["默认班级"];
-        let students = JSON.parse(localStorage.getItem("homeworkStudents")) || [];
+<script>
+let currentClass = null; // 无默认班级
+let classes = JSON.parse(localStorage.getItem("homeworkClasses")) || []; // 初始为空
+let students = JSON.parse(localStorage.getItem("homeworkStudents")) || [];
+let currentQrStudentId = null;
+let currentNoteStudentId = null;
 
-        // DOM元素
-        const classNameInput = document.getElementById("classNameInput");
-        const addClassBtn = document.getElementById("addClassBtn");
-        const classList = document.getElementById("classList");
-        const studentName = document.getElementById("studentName");
-        const studentId = document.getElementById("studentId");
-        const addStudentBtn = document.getElementById("addStudentBtn");
-        const excelFile = document.getElementById("excelFile");
-        const scanHomeworkBtn = document.getElementById("scanHomeworkBtn");
-        const scanModal = document.getElementById("scanModal");
-        const closeScanBtn = document.getElementById("closeScanBtn");
-        const video = document.getElementById("video");
-        const scanCanvas = document.getElementById("scanCanvas");
-        const scanResult = document.getElementById("scanResult");
-        const studentTableBody = document.getElementById("studentTableBody");
-        const studentListTitle = document.getElementById("studentListTitle");
-        const submittedCount = document.getElementById("submittedCount");
-        const totalCount = document.getElementById("totalCount");
-        const refreshStatusBtn = document.getElementById("refreshStatusBtn");
-        const generateAllQrBtn = document.getElementById("generateAllQrBtn");
-        const exportAllQrBtn = document.getElementById("exportAllQrBtn");
-        const currentDate = document.getElementById("current-date");
+const classNameInput = document.getElementById("classNameInput");
+const addClassBtn = document.getElementById("addClassBtn");
+const classList = document.getElementById("classList");
+const mainFunctions = document.getElementById("mainFunctions");
 
-        // 初始化日期
-        currentDate.textContent = new Date().toLocaleDateString('zh-CN', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            weekday: 'long'
-        });
+const studentName = document.getElementById("studentName");
+const studentId = document.getElementById("studentId");
+const addStudentBtn = document.getElementById("addStudentBtn");
+const excelFile = document.getElementById("excelFile");
+const scanHomeworkBtn = document.getElementById("scanHomeworkBtn");
+const scanModal = document.getElementById("scanModal");
+const closeScanBtn = document.getElementById("closeScanBtn");
+const video = document.getElementById("video");
+const scanCanvas = document.getElementById("scanCanvas");
+const scanResult = document.getElementById("scanResult");
+const studentInfo = document.getElementById("studentInfo");
+const infoName = document.getElementById("infoName");
+const infoId = document.getElementById("infoId");
+const infoStatus = document.getElementById("infoStatus");
+const unsubmittedList = document.getElementById("unsubmittedList");
+const submittedList = document.getElementById("submittedList");
+const studentListTitle = document.getElementById("studentListTitle");
+const submittedCount = document.getElementById("submittedCount");
+const totalCount = document.getElementById("totalCount");
+const refreshStatusBtn = document.getElementById("refreshStatusBtn");
+const generateAllQrBtn = document.getElementById("generateAllQrBtn");
+const exportAllQrBtn = document.getElementById("exportAllQrBtn");
+const currentDate = document.getElementById("current-date");
 
-        // 初始化页面
-        init();
+const qrModal = document.getElementById("qrModal");
+const closeQrBtn = document.getElementById("closeQrBtn");
+const qrStudentName = document.getElementById("qrStudentName");
+const previewCanvas = document.getElementById("previewCanvas");
+const genQrBtn = document.getElementById("genQrBtn");
+const exportQrBtn = document.getElementById("exportQrBtn");
 
-        // 初始化函数
-        function init() {
+const noteModal = document.getElementById("noteModal");
+const closeNoteBtn = document.getElementById("closeNoteBtn");
+const noteStudentName = document.getElementById("noteStudentName");
+const noteInput = document.getElementById("noteInput");
+const saveNoteBtn = document.getElementById("saveNoteBtn");
+
+currentDate.textContent = new Date().toLocaleDateString('zh-CN', {
+    year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+});
+
+init();
+bindQrModalEvents();
+bindNoteModalEvents();
+
+// ========== 稳定版 一键生成全部二维码 ==========
+generateAllQrBtn.onclick = async function () {
+    if (!currentClass) {
+        alert("请先选择班级！");
+        return;
+    }
+    if (!confirm("确定要生成当前班级所有学生二维码吗？")) return;
+
+    const studentList = students.filter(s => s.class === currentClass);
+    if (studentList.length === 0) {
+        alert("当前班级没有学生！");
+        return;
+    }
+
+    alert("开始生成二维码，生成期间请勿关闭页面～");
+
+    let successCount = 0;
+
+    for (const student of studentList) {
+        if (student.qrCode && student.qrCode.startsWith("data:image/png;base64")) {
+            continue;
+        }
+
+        try {
+            const ctx = previewCanvas.getContext("2d");
+            ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+            const text = `班级：${student.class}\n学号：${student.id}\n姓名：${student.name}`;
+
+            await new Promise((resolve, reject) => {
+                QRCode.toCanvas(previewCanvas, text, {
+                    width: 180,
+                    margin: 1,
+                    color: { dark: "#000000", light: "#ffffff" }
+                }, (error) => {
+                    if (error) reject(error);
+                    else resolve();
+                });
+            });
+
+            student.qrCode = previewCanvas.toDataURL("image/png");
+            successCount++;
+        } catch (e) {
+            console.error("生成失败：", student, e);
+        }
+    }
+
+    saveData();
+    alert(`✅ 生成完成！\n成功生成：${successCount} 个`);
+};
+
+// 一键导出全部二维码
+exportAllQrBtn.onclick = async () => {
+    if (!currentClass) { alert("请先选择班级！"); return; }
+    const list = students.filter(s => s.class === currentClass && s.qrCode);
+    if(list.length === 0){ alert("请先生成二维码！"); return; }
+    
+    const zip = new JSZip();
+    const folder = zip.folder(`${currentClass}_学生二维码`);
+    list.forEach(s => {
+        folder.file(`${s.name}_${s.id}.png`, s.qrCode.split(',')[1], {base64:true});
+    });
+    
+    const blob = await zip.generateAsync({type:"blob"});
+    saveAs(blob, `${currentClass}_学生二维码.zip`);
+    alert("✅ 导出成功！压缩包内是完整文件夹");
+};
+
+function init() {
+    renderClassList();
+    renderTwoColumnList();
+    updateStats();
+    checkClassVisibility();
+}
+
+// 必须有班级才显示功能
+function checkClassVisibility() {
+    if (classes.length === 0 || currentClass === null) {
+        mainFunctions.classList.add("hidden");
+    } else {
+        mainFunctions.classList.remove("hidden");
+    }
+}
+
+function renderClassList() {
+    classList.innerHTML = "";
+    if (classes.length === 0) {
+        currentClass = null;
+        studentListTitle.textContent = "学生列表";
+        checkClassVisibility();
+        return;
+    }
+
+    classes.forEach(className => {
+        const classTag = document.createElement("span");
+        classTag.className = `px-2.5 py-1 rounded-full text-sm cursor-pointer btn-hover ${currentClass === className ? "bg-primary text-white" : "bg-neutral text-gray-700 hover:bg-primary/10"}`;
+        classTag.textContent = className;
+        classTag.onclick = () => {
+            currentClass = className;
+            studentListTitle.textContent = `${className} - 学生列表`;
             renderClassList();
-            renderStudentList();
+            renderTwoColumnList();
             updateStats();
-        }
-
-        // 渲染班级列表
-        function renderClassList() {
-            classList.innerHTML = "";
-            classes.forEach(className => {
-                const classTag = document.createElement("span");
-                classTag.className = `px-3 py-1.5 rounded-full text-sm cursor-pointer btn-hover ${
-                    currentClass === className ? "bg-primary text-white" : "bg-neutral text-gray-700 hover:bg-primary/10"
-                }`;
-                classTag.textContent = className;
-                classTag.onclick = () => {
-                    currentClass = className;
-                    studentListTitle.textContent = `${className} - 学生列表`;
-                    renderClassList();
-                    renderStudentList();
-                    updateStats();
-                };
-                
-                // 添加删除按钮（非默认班级）
-                if (className !== "默认班级") {
-                    const deleteBtn = document.createElement("i");
-                    deleteBtn.className = "fa fa-times ml-2 cursor-pointer";
-                    deleteBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        if (confirm(`确定要删除班级【${className}】吗？该班级学生也会被删除！`)) {
-                            classes = classes.filter(c => c !== className);
-                            students = students.filter(s => s.class !== className);
-                            if (currentClass === className) currentClass = "默认班级";
-                            saveData();
-                            renderClassList();
-                            renderStudentList();
-                            updateStats();
-                        }
-                    };
-                    classTag.appendChild(deleteBtn);
-                }
-                
-                classList.appendChild(classTag);
-            });
-            studentListTitle.textContent = `${currentClass} - 学生列表`;
-        }
-
-        // 添加班级
-        addClassBtn.onclick = () => {
-            const name = classNameInput.value.trim();
-            if (!name) {
-                alert("请输入班级名称！");
-                return;
-            }
-            if (classes.includes(name)) {
-                alert("该班级已存在！");
-                return;
-            }
-            classes.push(name);
-            classNameInput.value = "";
-            saveData();
-            renderClassList();
+            checkClassVisibility();
         };
 
-        // 手动添加学生
-        addStudentBtn.onclick = () => {
-            const name = studentName.value.trim();
-            const id = studentId.value.trim();
-            
-            if (!name || !id) {
-                alert("请输入完整的姓名和学号！");
-                return;
-            }
-            
-            // 检查学号重复
-            if (students.some(s => s.id === id && s.class === currentClass)) {
-                alert("该班级内学号已存在！");
-                return;
-            }
-            
-            const student = {
-                id: id,
-                name: name,
-                class: currentClass,
-                submitted: false,
-                qrCode: ""
-            };
-            
-            students.push(student);
-            studentName.value = "";
-            studentId.value = "";
-            saveData();
-            renderStudentList();
-            updateStats();
-        };
-
-        // Excel导入学生
-        excelFile.onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const data = new Uint8Array(event.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                    
-                    if (jsonData.length === 0) {
-                        alert("Excel文件中无数据！");
-                        return;
-                    }
-                    
-                    // 检查表头
-                    if (!jsonData[0].hasOwnProperty('姓名') || !jsonData[0].hasOwnProperty('学号')) {
-                        alert("Excel必须包含【姓名】和【学号】列！");
-                        return;
-                    }
-                    
-                    let successCount = 0;
-                    let failCount = 0;
-                    
-                    jsonData.forEach(row => {
-                        const name = row['姓名']?.toString().trim();
-                        const id = row['学号']?.toString().trim();
-                        
-                        if (name && id && !students.some(s => s.id === id && s.class === currentClass)) {
-                            students.push({
-                                id: id,
-                                name: name,
-                                class: currentClass,
-                                submitted: false,
-                                qrCode: ""
-                            });
-                            successCount++;
-                        } else {
-                            failCount++;
-                        }
-                    });
-                    
-                    saveData();
-                    renderStudentList();
-                    updateStats();
-                    alert(`导入完成！成功：${successCount} 人，失败：${failCount} 人`);
-                } catch (error) {
-                    alert("Excel解析失败：" + error.message);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        };
-
-        // 渲染学生列表
-        function renderStudentList() {
-            const classStudents = students.filter(s => s.class === currentClass);
-            studentTableBody.innerHTML = "";
-            
-            classStudents.forEach((student, index) => {
-                const tr = document.createElement("tr");
-                tr.className = "border-b border-gray-100 hover:bg-gray-50";
-                
-                tr.innerHTML = `
-                    <td class="py-3 px-4">${index + 1}</td>
-                    <td class="py-3 px-4">${student.id}</td>
-                    <td class="py-3 px-4 font-medium">${student.name}</td>
-                    <td class="py-3 px-4">${student.class}</td>
-                    <td class="py-3 px-4">
-                        <div id="qr-${student.id}" class="w-16 h-16"></div>
-                    </td>
-                    <td class="py-3 px-4">
-                        <span class="px-2 py-1 rounded text-xs font-medium ${
-                            student.submitted ? "bg-success/10 text-success" : "bg-gray-100 text-gray-600"
-                        }">
-                            ${student.submitted ? "已提交" : "未提交"}
-                        </span>
-                    </td>
-                    <td class="py-3 px-4">
-                        <button class="text-primary hover:text-primary/70 mr-2 generate-qr" data-id="${student.id}">
-                            <i class="fa fa-qrcode"></i>
-                        </button>
-                        <button class="text-success hover:text-success/70 mr-2 export-qr" data-id="${student.id}" title="导出二维码">
-                            <i class="fa fa-download"></i>
-                        </button>
-                        <button class="text-danger hover:text-danger/70 delete-student" data-id="${student.id}">
-                            <i class="fa fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                
-                studentTableBody.appendChild(tr);
-                
-                // 生成二维码（如果有数据）
-                if (student.qrCode) {
-                    document.getElementById(`qr-${student.id}`).innerHTML = student.qrCode;
-                }
-            });
-            
-            // 绑定生成二维码事件
-            document.querySelectorAll('.generate-qr').forEach(btn => {
-                btn.onclick = () => generateQrCode(btn.dataset.id);
-            });
-            
-            // 绑定导出二维码事件
-            document.querySelectorAll('.export-qr').forEach(btn => {
-                btn.onclick = () => exportSingleQr(btn.dataset.id);
-            });
-            
-            // 绑定删除学生事件
-            document.querySelectorAll('.delete-student').forEach(btn => {
-                btn.onclick = () => deleteStudent(btn.dataset.id);
-            });
-        }
-
-        // 生成单个二维码
-        function generateQrCode(studentId) {
-            const student = students.find(s => s.id === studentId);
-            if (!student) return;
-            
-            const qrText = `班级：${student.class}\n学号：${student.id}\n姓名：${student.name}`;
-            const qrContainer = document.getElementById(`qr-${studentId}`);
-            
-            QRCode.toCanvas(qrContainer, qrText, {
-                width: 200,
-                margin: 1
-            }, (error) => {
-                if (error) console.error(error);
-                else {
-                    student.qrCode = qrContainer.innerHTML;
-                    saveData();
-                }
-            });
-        }
-
-        // 导出单个二维码
-        function exportSingleQr(studentId) {
-            const student = students.find(s => s.id === studentId);
-            if (!student) {
-                alert("请先生成二维码！");
-                return;
-            }
-            
-            const qrContainer = document.getElementById(`qr-${studentId}`);
-            const canvas = qrContainer.querySelector('canvas');
-            
-            if (!canvas) {
-                alert("请先生成二维码！");
-                generateQrCode(studentId);
-                return;
-            }
-            
-            // 创建下载链接
-            const link = document.createElement('a');
-            link.download = `${student.name}_${student.id}_二维码.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }
-
-        // 批量导出当前班级所有二维码
-        exportAllQrBtn.onclick = async () => {
-            const classStudents = students.filter(s => s.class === currentClass);
-            if (classStudents.length === 0) {
-                alert("当前班级无学生！");
-                return;
-            }
-            
-            // 先确保所有二维码已生成
-            for (let student of classStudents) {
-                if (!student.qrCode) {
-                    await new Promise(resolve => generateQrCode(student.id));
-                }
-            }
-            
-            // 依次下载
-            for (let student of classStudents) {
-                setTimeout(() => {
-                    const qrContainer = document.getElementById(`qr-${student.id}`);
-                    const canvas = qrContainer.querySelector('canvas');
-                    const link = document.createElement('a');
-                    link.download = `${student.name}_${student.id}_二维码.png`;
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                }, 300);
-            }
-            
-            alert("开始批量导出二维码，请勿关闭页面！");
-        };
-
-        // 生成全部二维码
-        generateAllQrBtn.onclick = () => {
-            const classStudents = students.filter(s => s.class === currentClass);
-            if (classStudents.length === 0) {
-                alert("当前班级无学生！");
-                return;
-            }
-            
-            classStudents.forEach(student => generateQrCode(student.id));
-            alert("全部二维码生成完成！");
-        };
-
-        // 删除学生
-        function deleteStudent(studentId) {
-            if (!confirm("确定删除该学生？")) return;
-            students = students.filter(s => s.id !== studentId);
-            saveData();
-            renderStudentList();
-            updateStats();
-        }
-
-        // 打开扫码弹窗
-        scanHomeworkBtn.onclick = () => {
-            scanModal.classList.remove("hidden");
-            startScanner();
-        };
-
-        // 关闭扫码弹窗
-        closeScanBtn.onclick = () => {
-            scanModal.classList.add("hidden");
-            stopScanner();
-            scanResult.textContent = "";
-        };
-
-        // 启动摄像头扫码
-        function startScanner() {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                    .then(stream => {
-                        video.srcObject = stream;
-                        video.play();
-                        requestAnimationFrame(scanLoop);
-                    })
-                    .catch(err => {
-                        alert("摄像头调用失败：" + err.message + "\n请允许摄像头权限！");
-                    });
-            } else {
-                alert("您的浏览器不支持摄像头功能！");
-            }
-        }
-
-        // 停止摄像头
-        function stopScanner() {
-            const stream = video.srcObject;
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                video.srcObject = null;
-            }
-        }
-
-        // 扫码循环
-        function scanLoop() {
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                scanCanvas.width = video.videoWidth;
-                scanCanvas.height = video.videoHeight;
-                const ctx = scanCanvas.getContext("2d");
-                ctx.drawImage(video, 0, 0, scanCanvas.width, scanCanvas.height);
-                
-                const imageData = ctx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
-                
-                if (code) {
-                    handleScanResult(code.data);
-                }
-            }
-            if (!scanModal.classList.contains("hidden")) {
-                requestAnimationFrame(scanLoop);
-            }
-        }
-
-        // 处理扫码结果
-        function handleScanResult(data) {
-            try {
-                // 解析二维码信息
-                const lines = data.split('\n');
-                const studentId = lines[1].replace('学号：', '').trim();
-                
-                const student = students.find(s => s.id === studentId);
-                if (!student) {
-                    scanResult.textContent = "❌ 未找到该学生信息";
-                    scanResult.className = "text-center text-danger";
-                    return;
-                }
-                
-                if (student.class !== currentClass) {
-                    scanResult.textContent = `❌ 学生不属于【${currentClass}】`;
-                    scanResult.className = "text-center text-danger";
-                    return;
-                }
-                
-                if (student.submitted) {
-                    scanResult.textContent = `✅ ${student.name} 已提交过作业`;
-                    scanResult.className = "text-center text-success";
-                    return;
-                }
-                
-                // 标记为已提交
-                student.submitted = true;
+        const deleteBtn = document.createElement("i");
+        deleteBtn.className = "fa fa-times ml-2 cursor-pointer";
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (confirm(`确定删除班级【${className}】？`)) {
+                classes = classes.filter(c => c !== className);
+                students = students.filter(s => s.class !== className);
+                if (currentClass === className) currentClass = classes.length > 0 ? classes[0] : null;
                 saveData();
-                renderStudentList();
+                renderClassList();
+                renderTwoColumnList();
                 updateStats();
-                
-                scanResult.textContent = `✅ ${student.name} 作业提交成功！`;
-                scanResult.className = "text-center text-success";
-                
-                // 1秒后清空提示
-                setTimeout(() => scanResult.textContent = "", 1500);
-                
-            } catch (error) {
-                scanResult.textContent = "❌ 二维码解析失败";
-                scanResult.className = "text-center text-danger";
+                checkClassVisibility();
             }
-        }
+        };
+        classTag.appendChild(deleteBtn);
+        classList.appendChild(classTag);
+    });
 
-        // 更新统计数据
-        function updateStats() {
-            const classStudents = students.filter(s => s.class === currentClass);
-            const submitted = classStudents.filter(s => s.submitted).length;
-            totalCount.textContent = classStudents.length;
-            submittedCount.textContent = submitted;
-        }
+    if (currentClass === null && classes.length > 0) {
+        currentClass = classes[0];
+        studentListTitle.textContent = `${currentClass} - 学生列表`;
+    }
+    checkClassVisibility();
+}
 
-        // 刷新状态（重置全部未提交）
-        refreshStatusBtn.onclick = () => {
-            if (!confirm("确定要重置当前班级所有学生的提交状态吗？")) return;
-            students.forEach(s => {
-                if (s.class === currentClass) s.submitted = false;
+addClassBtn.onclick = () => {
+    const name = classNameInput.value.trim();
+    if (!name) { alert("请输入班级名称！"); return; }
+    if (classes.includes(name)) { alert("班级已存在！"); return; }
+    classes.push(name);
+    classNameInput.value = "";
+    saveData();
+    renderClassList();
+    checkClassVisibility();
+};
+
+// 添加学生
+addStudentBtn.onclick = () => {
+    if (!currentClass) { alert("请先选择班级！"); return; }
+    const name = studentName.value.trim();
+    const id = studentId.value.trim();
+    if (!name || !id) { alert("请输入完整信息！"); return; }
+    if (students.some(s => s.id === id && s.class === currentClass)) { alert("学号重复！"); return; }
+    
+    students.push({ id, name, class: currentClass, submitted: false, qrCode: "", note: "" });
+    students.sort((a,b) => (parseInt(a.id)||0) - (parseInt(b.id)||0));
+    
+    studentName.value = "";
+    studentId.value = "";
+    saveData();
+    renderTwoColumnList();
+    updateStats();
+    checkClassVisibility();
+};
+
+// Excel导入
+excelFile.onchange = (e) => {
+    if (!currentClass) { alert("请先选择班级！"); return; }
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        try {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            if (!jsonData[0]?.hasOwnProperty('姓名') || !jsonData[0]?.hasOwnProperty('学号')) {
+                alert("必须包含姓名、学号列！");
+                return;
+            }
+            let count = 0;
+            jsonData.forEach(row => {
+                const name = row['姓名']?.toString().trim();
+                const id = row['学号']?.toString().trim();
+                if (name && id && !students.some(s => s.id === id && s.class === currentClass)) {
+                    students.push({ id, name, class: currentClass, submitted: false, qrCode: "", note: "" });
+                    count++;
+                }
             });
+            students.sort((a,b) => (parseInt(a.id)||0) - (parseInt(b.id)||0));
             saveData();
-            renderStudentList();
+            renderTwoColumnList();
+            updateStats();
+            checkClassVisibility();
+            alert(`导入成功 ${count} 人`);
+        } catch (e) { alert("导入失败"); }
+    };
+    reader.readAsArrayBuffer(file);
+};
+
+// 两栏渲染
+function renderTwoColumnList() {
+    if (!currentClass) {
+        unsubmittedList.innerHTML = "";
+        submittedList.innerHTML = "";
+        return;
+    }
+
+    let list = students.filter(s => s.class === currentClass);
+    list = [...list].sort((a,b) => (parseInt(a.id)||0) - (parseInt(b.id)||0));
+    
+    const unsubmitted = list.filter(s => !s.submitted);
+    const submitted = list.filter(s => s.submitted);
+    
+    unsubmittedList.innerHTML = "";
+    submittedList.innerHTML = "";
+    
+    function createItem(s) {
+        const div = document.createElement("div");
+        div.className = "flex items-center justify-between p-2 border rounded text-sm";
+        const notePreview = s.note ? `<div class="text-xs text-gray-500 mt-1">备注：${s.note}</div>` : "";
+        div.innerHTML = `
+            <div>
+                <span class="font-medium">${s.name}</span>
+                <span class="text-xs text-gray-500 ml-1">${s.id}</span>
+                ${notePreview}
+            </div>
+            <div class="flex gap-1">
+                <button class="toggle btn-sm ${s.submitted ? 'bg-gray-500' : 'bg-success'} text-white" data-id="${s.id}">
+                    ${s.submitted ? '撤销' : '提交'}
+                </button>
+                <button class="note-btn btn-sm bg-warning text-white" data-id="${s.id}">备注</button>
+                <button class="gen btn-sm bg-primary text-white" data-id="${s.id}">二维码</button>
+                <button class="del btn-sm bg-danger text-white" data-id="${s.id}">删除</button>
+            </div>
+        `;
+        return div;
+    }
+    
+    unsubmitted.forEach(s => { unsubmittedList.appendChild(createItem(s)); });
+    submitted.forEach(s => { submittedList.appendChild(createItem(s)); });
+    
+    document.querySelectorAll('.toggle').forEach(b => {
+        b.onclick = () => {
+            const s = students.find(x => x.id === b.dataset.id);
+            s.submitted = !s.submitted;
+            saveData();
+            renderTwoColumnList();
             updateStats();
         };
-
-        // 保存数据到本地存储
-        function saveData() {
-            localStorage.setItem("homeworkClasses", JSON.stringify(classes));
-            localStorage.setItem("homeworkStudents", JSON.stringify(students));
+    });
+    document.querySelectorAll('.note-btn').forEach(b => {
+        b.onclick = () => { openNoteModal(b.dataset.id); };
+    });
+    document.querySelectorAll('.gen').forEach(b => {
+        b.onclick = () => { openQrModal(b.dataset.id); };
+    });
+    document.querySelectorAll('.del').forEach(b => b.onclick = () => {
+        if(confirm("确定删除？")){
+            students = students.filter(x => x.id !== b.dataset.id);
+            saveData();
+            renderTwoColumnList();
+            updateStats();
+            checkClassVisibility();
         }
-    </script>
+    });
+}
+
+// ==================== 备注弹窗 ====================
+function openNoteModal(studentId) {
+    currentNoteStudentId = studentId;
+    const s = students.find(x => x.id === studentId);
+    noteStudentName.textContent = s.name;
+    noteInput.value = s.note || "";
+    noteModal.classList.remove('hidden');
+}
+
+function bindNoteModalEvents() {
+    closeNoteBtn.onclick = () => noteModal.classList.add('hidden');
+    saveNoteBtn.onclick = () => {
+        const s = students.find(x => x.id === currentNoteStudentId);
+        s.note = noteInput.value.trim();
+        saveData();
+        renderTwoColumnList();
+        noteModal.classList.add('hidden');
+        alert("备注保存成功！");
+    };
+}
+
+// ==================== 二维码弹窗 ====================
+function openQrModal(studentId) {
+    currentQrStudentId = studentId;
+    const s = students.find(x => x.id === studentId);
+    qrStudentName.textContent = s.name;
+    qrModal.classList.remove('hidden');
+    previewCanvas.getContext('2d').clearRect(0,0,180,180);
+}
+
+function bindQrModalEvents() {
+    closeQrBtn.onclick = () => qrModal.classList.add('hidden');
+    genQrBtn.onclick = () => {
+        const s = students.find(x => x.id === currentQrStudentId);
+        const text = `班级：${s.class}\n学号：${s.id}\n姓名：${s.name}`;
+        QRCode.toCanvas(previewCanvas, text, { width: 180, margin: 1 }, err => {
+            if (!err) {
+                s.qrCode = previewCanvas.toDataURL("image/png");
+                saveData();
+                alert("生成成功！");
+            }
+        });
+    };
+    exportQrBtn.onclick = () => {
+        const s = students.find(x => x.id === currentQrStudentId);
+        if (!s.qrCode) { alert("请先生成！"); return; }
+        const a = document.createElement("a");
+        a.download = `${s.name}_${s.id}.png`;
+        a.href = s.qrCode;
+        a.click();
+    };
+}
+
+// 扫码
+scanHomeworkBtn.onclick = () => { scanModal.classList.remove("hidden"); startScanner(); };
+closeScanBtn.onclick = () => { scanModal.classList.add("hidden"); stopScanner(); studentInfo.classList.add("hidden"); };
+
+function startScanner() {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(stream => {
+        video.srcObject = stream; video.play(); scanLoop();
+    }).catch(() => alert("请开启摄像头权限"));
+}
+
+function stopScanner() {
+    if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+}
+
+function scanLoop() {
+    if (video.readyState === 4) {
+        scanCanvas.width = video.videoWidth;
+        scanCanvas.height = video.videoHeight;
+        scanCanvas.getContext("2d").drawImage(video, 0, 0);
+        const code = jsQR(scanCanvas.getContext("2d").getImageData(0,0,scanCanvas.width,scanCanvas.height).data, scanCanvas.width, scanCanvas.height);
+        if (code) handleScanResult(code.data);
+    }
+    if (!scanModal.classList.contains("hidden")) requestAnimationFrame(scanLoop);
+}
+
+function handleScanResult(data) {
+    if (!currentClass) return;
+    const match = data.match(/学号：(\S+)/);
+    if (!match) return;
+    const s = students.find(x => x.id === match[1] && x.class === currentClass);
+    if (!s) return;
+    
+    infoName.textContent = `姓名：${s.name}`;
+    infoId.textContent = `学号：${s.id}`;
+    studentInfo.classList.remove("hidden");
+
+    if (s.submitted) {
+        infoStatus.textContent = "已提交";
+        infoStatus.className = "mt-1 text-sm font-medium text-success";
+        return;
+    }
+
+    s.submitted = true;
+    saveData();
+    renderTwoColumnList();
+    updateStats();
+    infoStatus.textContent = "已提交";
+    infoStatus.className = "mt-1 text-sm font-medium text-success";
+}
+
+function updateStats() {
+    if (!currentClass) {
+        totalCount.textContent = "0";
+        submittedCount.textContent = "0";
+        return;
+    }
+    const list = students.filter(s => s.class === currentClass);
+    totalCount.textContent = list.length;
+    submittedCount.textContent = list.filter(x => x.submitted).length;
+}
+
+refreshStatusBtn.onclick = () => {
+    if (!currentClass) { alert("请先选择班级！"); return; }
+    if (!confirm("重置所有状态？")) return;
+    students.forEach(s => { if (s.class === currentClass) s.submitted = false; });
+    saveData(); renderTwoColumnList(); updateStats();
+};
+
+function saveData() {
+    localStorage.setItem("homeworkClasses", JSON.stringify(classes));
+    localStorage.setItem("homeworkStudents", JSON.stringify(students));
+}
+</script>
 </body>
 </html>
