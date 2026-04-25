@@ -127,13 +127,13 @@
                 </div>
             </div>
 
-            <!-- 扫码弹窗 -->
+            <!-- 扫码弹窗 - 已修复 -->
             <div id="scanModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-3">
                 <div class="bg-white rounded-xl w-full max-w-lg p-3 relative shadow-2xl">
                     <button id="closeScanBtn" class="absolute right-2 top-2 text-gray-500 hover:text-gray-800 z-10 bg-white/80 rounded-full w-7 h-7 flex items-center justify-center"><i class="fa fa-times text-base"></i></button>
                     <h3 class="text-lg font-bold mb-2 text-center pr-6">扫描作业二维码</h3>
                     <div class="relative w-full bg-black rounded-xl overflow-hidden shadow-lg" style="aspect-ratio: 4/3;">
-                        <video id="video" class="w-full h-full object-cover" autoplay playsinline></video>
+                        <video id="video" class="w-full h-full object-cover" autoplay playsinline muted></video>
                         <canvas id="scanCanvas" class="absolute inset-0 w-full h-full hidden"></canvas>
                     </div>
                     <div id="studentInfoCard" class="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-200 hidden transition-all">
@@ -707,11 +707,118 @@ resetHomeworkBtn.onclick = () => { if(!currentClass) return; if(confirm(`重置�
 deleteHomeworkBtn.onclick = () => { deleteCurrentHomework(); };
 completeStatBtn.onclick = () => { recordCurrentStatAndReset(); };
 clearHistoryBtn.onclick = () => { clearHistory(); };
-function startHomeworkScanner() { navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(stream => { video.srcObject = stream; video.play(); requestAnimationFrame(scanLoop); }).catch(() => alert("摄像头权限未开启")); }
-function stopHomeworkScanner() { if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop()); }
-function scanLoop() { if(video.readyState===4 && !scanModal.classList.contains("hidden")){ scanCanvas.width=video.videoWidth; scanCanvas.height=video.videoHeight; let ctx=scanCanvas.getContext("2d"); ctx.drawImage(video,0,0); let imageData=ctx.getImageData(0,0,scanCanvas.width,scanCanvas.height); let code=jsQR(imageData.data,scanCanvas.width,scanCanvas.height); if(code){ let match=code.data.match(/学号：(\S+)/); if(match&&match[1]){ let id=match[1]; if(lastScannedId===id){ requestAnimationFrame(scanLoop); return; } lastScannedId=id; setTimeout(()=>{lastScannedId=null;},800); let s=students.find(x=>x.id===id && x.class===currentClass); if(s){ playBeep(); infoName.textContent=`${s.name}`; infoId.textContent=`学号：${s.id}`; studentInfoCard.classList.remove("hidden"); if(!getSubmissionStatus(s)){ setSubmissionStatus(s,true); saveData(); renderTwoColumnList(); updateStats(); infoStatus.textContent=`✅ 作业「${currentHomeworkName}」已提交`; infoStatus.className="mt-1 text-sm font-medium text-success bg-green-50 px-2 py-1 rounded"; } else { infoStatus.textContent=`⚠️ 作业「${currentHomeworkName}」已提交过`; infoStatus.className="mt-1 text-sm font-medium text-warning bg-orange-50 px-2 py-1 rounded"; } } else { playBeep(); infoName.textContent="未找到学生"; infoId.textContent="请检查班级或学号"; infoStatus.textContent="❌ 无此学生"; infoStatus.className="mt-1 text-sm font-medium text-danger bg-red-50 px-2 py-1 rounded"; studentInfoCard.classList.remove("hidden"); } } } } requestAnimationFrame(scanLoop); }
-scanHomeworkBtn.onclick = () => { scanModal.classList.remove("hidden"); startHomeworkScanner(); };
-closeScanBtn.onclick = () => { scanModal.classList.add("hidden"); stopHomeworkScanner(); studentInfoCard.classList.add("hidden"); };
+
+// ==================== 修复后的扫码逻辑 ====================
+let currentStream = null;
+let scanningActive = false;
+let scanAnimationId = null;
+let lastScannedId = null;
+
+function stopScanning() {
+    if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+        currentStream = null;
+    }
+    if (scanAnimationId) {
+        cancelAnimationFrame(scanAnimationId);
+        scanAnimationId = null;
+    }
+    scanningActive = false;
+}
+
+function startHomeworkScanner() {
+    stopScanning();
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(stream => {
+            currentStream = stream;
+            const videoEl = document.getElementById("video");
+            videoEl.srcObject = stream;
+            videoEl.play().catch(e => console.warn(e));
+            scanningActive = true;
+            scanLoop();
+        })
+        .catch(err => {
+            alert("无法开启摄像头，请检查权限: " + err.message);
+        });
+}
+
+function scanLoop() {
+    if (!scanningActive) return;
+    const videoEl = document.getElementById("video");
+    const canvas = document.getElementById("scanCanvas");
+    const modal = document.getElementById("scanModal");
+    
+    if (!modal || modal.classList.contains("hidden") || !videoEl.videoWidth || !videoEl.videoHeight) {
+        scanAnimationId = requestAnimationFrame(scanLoop);
+        return;
+    }
+    
+    canvas.width = videoEl.videoWidth;
+    canvas.height = videoEl.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, canvas.width, canvas.height);
+    
+    if (code) {
+        // 匹配学号：支持 "学号：123" 或 "学号: 123" 格式
+        const match = code.data.match(/学号[：:]\s*(\S+)/);
+        if (match && match[1]) {
+            const id = match[1].trim();
+            // 防重复扫描同一学号
+            if (lastScannedId === id) {
+                scanAnimationId = requestAnimationFrame(scanLoop);
+                return;
+            }
+            lastScannedId = id;
+            setTimeout(() => { lastScannedId = null; }, 800);
+            
+            const student = students.find(x => x.id === id && x.class === currentClass);
+            if (student) {
+                playBeep();
+                infoName.textContent = `${student.name}`;
+                infoId.textContent = `学号：${student.id}`;
+                studentInfoCard.classList.remove("hidden");
+                
+                if (!getSubmissionStatus(student)) {
+                    setSubmissionStatus(student, true);
+                    saveData();
+                    renderTwoColumnList();
+                    updateStats();
+                    infoStatus.textContent = `✅ 作业「${currentHomeworkName}」已提交`;
+                    infoStatus.className = "mt-1 text-sm font-medium text-success bg-green-50 px-2 py-1 rounded";
+                } else {
+                    infoStatus.textContent = `⚠️ 作业「${currentHomeworkName}」已提交过`;
+                    infoStatus.className = "mt-1 text-sm font-medium text-warning bg-orange-50 px-2 py-1 rounded";
+                }
+            } else {
+                playBeep();
+                infoName.textContent = "未找到学生";
+                infoId.textContent = "请检查班级或学号";
+                infoStatus.textContent = "❌ 无此学生";
+                infoStatus.className = "mt-1 text-sm font-medium text-danger bg-red-50 px-2 py-1 rounded";
+                studentInfoCard.classList.remove("hidden");
+            }
+        }
+    }
+    scanAnimationId = requestAnimationFrame(scanLoop);
+}
+
+scanHomeworkBtn.onclick = () => {
+    if (!currentClass) {
+        alert("请先选择一个班级");
+        return;
+    }
+    scanModal.classList.remove("hidden");
+    startHomeworkScanner();
+};
+
+closeScanBtn.onclick = () => {
+    scanModal.classList.add("hidden");
+    stopScanning();
+    studentInfoCard.classList.add("hidden");
+};
+
 function generateFullSyncPayload(){ return { v:"3.0", ts:Date.now(), classes, currentHomeworkName, students: students.map(s=>({ id:s.id, name:s.name, class:s.class, homeworkStatus:s.homeworkStatus||{}, notes:s.notes||{}, qrCode:s.qrCode||"" })), historyRecords }; }
 function compressSyncData(){ return LZString.compressToBase64(JSON.stringify(generateFullSyncPayload())); }
 function parseAndMergeSyncData(compressed){ try{ let data=JSON.parse(LZString.decompressFromBase64(compressed)); if(data.v!=="3.0") throw "版本"; let newClasses=[...classes]; data.classes.forEach(c=>{if(!newClasses.includes(c)) newClasses.push(c);}); let newStudents=[...students]; data.students.forEach(remote=>{ let idx=newStudents.findIndex(l=>l.class===remote.class && l.id===remote.id); if(idx===-1) newStudents.push(remote); else newStudents[idx]=remote; }); classes=newClasses; students=newStudents; if(data.currentHomeworkName) currentHomeworkName=data.currentHomeworkName; if(data.historyRecords) historyRecords = data.historyRecords; saveData(); renderClassList(); if(currentClass) renderTwoColumnList(); updateStats(); updateHomeworkNameUI(); refreshHomeworkSelector(); renderHistoryList(); return true; }catch(e){ return false; } }
@@ -719,7 +826,7 @@ function showSyncCodeModal(){ let compressed=compressSyncData(); let modalDiv=do
 genCopySyncBtnMain.onclick=showSyncCodeModal;
 pasteParseSyncBtnMain.onclick=async()=>{ let code=""; try{ code=await navigator.clipboard.readText(); }catch(e){ code=prompt("粘贴同步码"); } if(code&&parseAndMergeSyncData(code.trim())) alert("同步成功"); else alert("同步失败"); };
 if (homeworkSelector) homeworkSelector.addEventListener("change", onHomeworkSelectorChange);
-homeBtn.onclick = () => { showMainPage(); };
+homeBtn.onclick = () => { showMainPage(); stopScanning(); };
 helpBtn.onclick = () => { showHelpPage(); initHelpTabs(); };
 footerLegalLink.onclick = (e) => { e.preventDefault(); showHelpPage(); initHelpTabs(); const legalBtn = Array.from(document.querySelectorAll(".help-nav-btn")).find(btn => btn.dataset.tab === "legal"); if(legalBtn) legalBtn.click(); };
 function init() { migrateStudentData(); ensureStudentsHomeworkField(); if(!currentHomeworkName) currentHomeworkName="默认作业"; updateHomeworkNameUI(); renderClassList(); renderTwoColumnList(); updateStats(); refreshHomeworkSelector(); renderHistoryList(); if(homeworkSelector) homeworkSelector.value = currentHomeworkName; showMainPage(); }
