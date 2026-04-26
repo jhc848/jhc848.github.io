@@ -127,7 +127,7 @@
                 </div>
             </div>
 
-            <!-- 扫码弹窗 - 已修复 -->
+            <!-- 扫码弹窗 -->
             <div id="scanModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-3">
                 <div class="bg-white rounded-xl w-full max-w-lg p-3 relative shadow-2xl">
                     <button id="closeScanBtn" class="absolute right-2 top-2 text-gray-500 hover:text-gray-800 z-10 bg-white/80 rounded-full w-7 h-7 flex items-center justify-center"><i class="fa fa-times text-base"></i></button>
@@ -145,7 +145,7 @@
                         <p class="text-xs text-gray-500 mt-0.5" id="infoId"></p>
                         <p class="mt-2 text-sm font-medium rounded px-2 py-1 inline-block" id="infoStatus"></p>
                     </div>
-                    <p id="scanResultHint" class="text-center text-gray-400 text-xs mt-2">对准二维码，自动识别</p>
+                    <p id="scanResultHint" class="text-center text-gray-400 text-xs mt-2">对准二维码，自动识别（根据姓名匹配）</p>
                 </div>
             </div>
 
@@ -172,6 +172,32 @@
                 </div>
             </div>
 
+            <!-- 历史完整名单模态框 -->
+            <div id="fullListModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-white rounded-xl w-full max-w-3xl max-h-[85vh] flex flex-col relative shadow-2xl">
+                    <button id="closeFullListBtn" class="absolute right-3 top-3 text-gray-400 hover:text-gray-700 z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-sm"><i class="fa fa-times"></i></button>
+                    <div class="p-5 border-b border-gray-100 shrink-0">
+                        <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2"><i class="fa fa-list-ul text-primary"></i>作业完成名单详情</h3>
+                        <p class="text-sm text-gray-500 mt-1" id="fullListMeta"></p>
+                    </div>
+                    <div class="overflow-y-auto p-5 flex-1">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-green-50 rounded-xl p-4 border border-green-100">
+                                <h4 class="font-bold text-success text-base flex items-center gap-2 mb-3"><i class="fa fa-check-circle"></i> ✅ 已提交 (<span id="modalSubmittedCount">0</span>)</h4>
+                                <div id="modalSubmittedList" class="space-y-2 max-h-64 overflow-y-auto pr-1"></div>
+                            </div>
+                            <div class="bg-orange-50 rounded-xl p-4 border border-orange-100">
+                                <h4 class="font-bold text-warning text-base flex items-center gap-2 mb-3"><i class="fa fa-hourglass-half"></i> ⏳ 未提交 (<span id="modalUnsubmittedCount">0</span>)</h4>
+                                <div id="modalUnsubmittedList" class="space-y-2 max-h-64 overflow-y-auto pr-1"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3 border-t border-gray-100 text-center text-gray-400 text-xs shrink-0">
+                        统计时间 · 本地存储
+                    </div>
+                </div>
+            </div>
+
             <!-- 学生双栏列表 -->
             <div class="bg-white rounded-lg p-4 card-shadow mb-5">
                 <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -193,7 +219,7 @@
                 </div>
             </div>
 
-            <!-- 历史记录卡片 -->
+            <!-- 历史记录卡片（含完整名单按钮） -->
             <div class="bg-white rounded-lg p-4 card-shadow">
                 <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
                     <h2 class="text-base font-semibold text-gray-800 flex items-center"><i class="fa fa-history text-primary mr-2"></i>作业完成统计历史</h2>
@@ -220,7 +246,7 @@
         </div>
     </div>
 
-    <!-- 帮助页面（统一格式化） -->
+    <!-- 帮助页面（无特别高亮标注） -->
     <div id="helpPage" class="hidden">
         <div class="bg-white rounded-lg p-6 card-shadow">
             <h2 class="text-xl font-bold text-gray-800 mb-5 flex items-center"><i class="fa fa-life-ring text-primary mr-2"></i>帮助中心</h2>
@@ -254,7 +280,7 @@
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-users text-primary mr-2 w-5"></i>1. 班级管理</h4><p class="text-sm text-gray-600 mt-1 ml-7">点击「添加班级」创建班级，点击班级名称可切换。支持重命名和删除班级（删除班级会同时删除该班级所有学生数据）。</p></div>
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-user-plus text-primary mr-2 w-5"></i>2. 学生管理</h4><p class="text-sm text-gray-600 mt-1 ml-7">手动添加或通过Excel导入学生。Excel文件需包含「姓名」「学号」两列表头。每个学生可单独标记提交/撤销，也可添加备注。</p></div>
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-tasks text-primary mr-2 w-5"></i>3. 作业项目</h4><p class="text-sm text-gray-600 mt-1 ml-7">通过下拉菜单可以新建/切换/删除作业。每个作业独立统计提交状态，互不影响。</p></div>
-                            <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-qrcode text-primary mr-2 w-5"></i>4. 扫码统计</h4><p class="text-sm text-gray-600 mt-1 ml-7">点击「扫码统计作业」打开摄像头，扫描学生二维码，系统自动识别并标记该学生为“已提交”。</p></div>
+                            <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-qrcode text-primary mr-2 w-5"></i>4. 扫码统计</h4><p class="text-sm text-gray-600 mt-1 ml-7">点击「扫码统计作业」打开摄像头，扫描学生二维码，系统自动识别二维码中的「姓名」字段，并标记该学生为“已提交”。</p></div>
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-check-circle text-primary mr-2 w-5"></i>5. 完成统计 & 重置</h4><p class="text-sm text-gray-600 mt-1 ml-7">点击后记录当前作业的提交情况到历史记录，并自动将所有学生重置为“未提交”状态。</p></div>
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-cloud-upload text-primary mr-2 w-5"></i>6. 数据同步</h4><p class="text-sm text-gray-600 mt-1 ml-7">点击「生成同步码」导出所有数据，在另一设备点击「导入同步码」即可合并数据。</p></div>
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-download text-primary mr-2 w-5"></i>7. 二维码管理</h4><p class="text-sm text-gray-600 mt-1 ml-7">可为每个学生生成专属二维码，支持单个导出或批量导出ZIP包。</p></div>
@@ -268,14 +294,14 @@
                         </div>
                         <div class="space-y-4">
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-camera text-primary mr-2 w-5"></i>Q: 扫码无法打开摄像头？</h4><p class="text-sm text-gray-600 mt-1 ml-7">请确保浏览器已授予摄像头权限，建议使用HTTPS环境。首次使用需要点击“允许”访问摄像头。</p></div>
-                            <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-qrcode text-primary mr-2 w-5"></i>Q: 二维码无法识别？</h4><p class="text-sm text-gray-600 mt-1 ml-7">请确保二维码清晰完整，内容需包含“学号：xxx”格式，系统会自动提取学号匹配学生。</p></div>
+                            <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-qrcode text-primary mr-2 w-5"></i>Q: 二维码无法识别？</h4><p class="text-sm text-gray-600 mt-1 ml-7">请确保二维码清晰完整，内容需包含“姓名：xxx”格式，系统会自动提取姓名匹配该班级的学生。</p></div>
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-exchange text-primary mr-2 w-5"></i>Q: 不同作业的提交状态会互相影响吗？</h4><p class="text-sm text-gray-600 mt-1 ml-7">不会。每个作业独立统计，切换作业后提交状态独立保存。</p></div>
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-database text-primary mr-2 w-5"></i>Q: 数据会丢失吗？如何备份？</h4><p class="text-sm text-gray-600 mt-1 ml-7">数据保存在浏览器本地。建议定期使用“生成同步码”备份。清除浏览器缓存会导致数据丢失。</p></div>
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-file-excel-o text-primary mr-2 w-5"></i>Q: 如何批量生成学生二维码？</h4><p class="text-sm text-gray-600 mt-1 ml-7">点击「生成全部」按钮为全班生成二维码，点击「导出全部」可打包下载ZIP压缩包。</p></div>
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-table text-primary mr-2 w-5"></i>Q: Excel导入有什么要求？</h4><p class="text-sm text-gray-600 mt-1 ml-7">需包含「姓名」「学号」列（中文字段名必须完全一致），支持.xlsx和.xls格式。</p></div>
                         </div>
                     </div>
-                    <!-- 详细说明 -->
+                    <!-- 详细说明（无高亮标注，自然融入历史完整名单描述） -->
                     <div id="detailsContent" class="help-tab-content hidden">
                         <div class="bg-gradient-to-r from-primary/5 to-transparent p-4 rounded-xl mb-5">
                             <h3 class="text-lg font-semibold text-gray-800 flex items-center"><i class="fa fa-file-text-o text-primary mr-2"></i>详细说明</h3>
@@ -284,42 +310,22 @@
                         <div class="space-y-4">
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-file-excel-o text-primary mr-2 w-5"></i>📎 Excel导入格式</h4><p class="text-sm text-gray-600 mt-1 ml-7">导入学生时，Excel文件需包含【姓名】【学号】表头。示例：第一列标题为“姓名”，第二列标题为“学号”。系统会自动识别列名并导入。</p></div>
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-cloud-upload text-primary mr-2 w-5"></i>🔄 数据同步</h4><p class="text-sm text-gray-600 mt-1 ml-7">「生成同步码」会将所有数据压缩成一段文本，在另一设备「导入同步码」即可合并数据。两台设备的数据会智能合并，不会相互覆盖删除。</p></div>
-                            <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-qrcode text-primary mr-2 w-5"></i>🏷️ 二维码内容格式</h4><p class="text-sm text-gray-600 mt-1 ml-7">系统生成的二维码包含信息：班级：XXX、学号：XXX、姓名：XXX。扫码时系统会自动提取学号字段匹配当前班级的学生，实现快速提交统计。</p></div>
+                            <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-qrcode text-primary mr-2 w-5"></i>🏷️ 二维码内容格式</h4><p class="text-sm text-gray-600 mt-1 ml-7">系统生成的二维码包含信息：班级：XXX、学号：XXX、姓名：XXX。扫码时系统会自动提取【姓名】字段匹配当前班级的学生，实现快速提交统计。</p></div>
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-check-circle text-primary mr-2 w-5"></i>📊 完成统计 & 重置机制</h4><p class="text-sm text-gray-600 mt-1 ml-7">点击「完成统计 & 重置」会执行两个操作：1）将当前作业的提交情况（已提交名单、未提交名单、时间、作业名称、班级）保存到历史记录；2）将所有学生的提交状态重置为“未提交”。这样既保留了完成情况的记录，又清空了状态方便下一轮统计。</p></div>
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-hdd-o text-primary mr-2 w-5"></i>💾 数据存储说明</h4><p class="text-sm text-gray-600 mt-1 ml-7">所有数据使用浏览器本地存储(LocalStorage)保存，无需后端服务器。不同浏览器、不同设备的数据相互独立。清空浏览器缓存会导致数据丢失，建议定期使用同步码备份。</p></div>
                             <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-trash-o text-primary mr-2 w-5"></i>🗑️ 删除作业说明</h4><p class="text-sm text-gray-600 mt-1 ml-7">删除作业会清除该作业下所有学生的提交状态和备注，但不会删除学生基本信息。删除后不可恢复，请谨慎操作。至少保留一个作业。</p></div>
+                            <div class="help-card"><h4 class="font-semibold text-gray-700 flex items-center"><i class="fa fa-eye text-primary mr-2 w-5"></i>🔍 历史完整名单查看</h4><p class="text-sm text-gray-600 mt-1 ml-7">在「作业完成统计历史」区域，每条记录右侧均设有「完整名单」按钮。点击后即可查看该次作业的详细完成情况：分别列出已提交学生与未提交学生的姓名、学号，方便教师追溯、核对作业完成明细。</p></div>
                         </div>
                     </div>
-                    <!-- 用户协议 & 隐私政策（全新模块） -->
+                    <!-- 用户协议 & 隐私政策 -->
                     <div id="legalContent" class="help-tab-content hidden">
                         <div class="bg-gradient-to-r from-primary/5 to-transparent p-4 rounded-xl mb-5">
                             <h3 class="text-lg font-semibold text-gray-800 flex items-center"><i class="fa fa-gavel text-primary mr-2"></i>用户协议 & 隐私政策</h3>
                             <p class="text-gray-500 text-sm mt-1">感谢您使用“作业管理大师”，请仔细阅读以下条款</p>
                         </div>
                         <div class="space-y-6">
-                            <div class="help-card">
-                                <h4 class="font-semibold text-gray-800 text-md flex items-center"><i class="fa fa-file-text-o text-primary mr-2"></i>用户协议</h4>
-                                <div class="text-sm text-gray-600 space-y-2 mt-2">
-                                    <p><strong>1. 服务说明</strong><br>“作业管理大师”（以下简称本工具）是一款面向教育场景的本地作业统计工具。所有数据默认存储在用户浏览器的本地存储（LocalStorage）中，不上传任何服务器，用户对自己的数据拥有完全控制权。</p>
-                                    <p><strong>2. 使用规范</strong><br>您应当合法使用本工具，不得利用本工具存储、传播违法信息或侵犯他人权益的内容。您需自行承担因使用不当造成的一切后果。</p>
-                                    <p><strong>3. 免责声明</strong><br>本工具按“现状”提供，开发者不保证服务完全没有中断或错误。因浏览器缓存清理、本地数据损坏、设备丢失等导致的任何数据丢失，开发者不承担责任。建议用户定期使用“数据同步”功能备份数据。</p>
-                                    <p><strong>4. 知识产权</strong><br>本工具的代码、界面设计、图标等知识产权归开发者【蒋昊辰】所有。未经授权，不得反编译、二次销售或用于商业牟利。</p>
-                                    <p><strong>5. 条款修改</strong><br>开发者有权更新本协议，更新后的协议会在帮助页面展示。若您继续使用则视为同意修改。</p>
-                                    <p><strong>6. 联系方式</strong><br>如有问题或建议，请通过校内渠道联系开发者。</p>
-                                </div>
-                            </div>
-                            <div class="help-card">
-                                <h4 class="font-semibold text-gray-800 text-md flex items-center"><i class="fa fa-shield text-primary mr-2"></i>隐私政策</h4>
-                                <div class="text-sm text-gray-600 space-y-2 mt-2">
-                                    <p><strong>1. 数据收集范围</strong><br>本工具<strong class="text-primary">不收集任何个人隐私信息上传至云端</strong>。所有您创建的班级、学生姓名、学号、作业提交状态、备注以及二维码数据，均仅保存在您当前浏览器的本地存储中。开发者无法访问、读取或获取您的任何数据。</p>
-                                    <p><strong>2. 摄像头权限</strong><br>当您使用“扫码统计作业”功能时，本工具会请求访问摄像头权限，仅用于扫描二维码识别学号，处理过程完全在您的设备本地完成，不会产生任何录像、截图或数据上传。您可随时通过浏览器设置撤销该权限。</p>
-                                    <p><strong>3. 第三方服务</strong><br>本工具使用了开源的 jsQR 库用于二维码解析、XLSX 用于 Excel 导入、QRCode 库用于生成二维码，这些依赖库均在本地执行，不会向任何外部服务器发送您的数据。</p>
-                                    <p><strong>4. 数据导出与分享</strong><br>您使用“生成同步码”导出的压缩数据中包含您的全部班级与学生信息，该同步码由您自行保管，请勿分享给不可信第三方。若要彻底清除数据，可清除浏览器缓存或使用浏览器开发者工具清除 LocalStorage。</p>
-                                    <p><strong>5. 未成年人保护</strong><br>教师或家长作为管理者应合法使用学生信息，确保符合《未成年人保护法》及相关法规。本工具仅作为效率辅助，不可滥用。</p>
-                                    <p><strong>6. 政策更新</strong><br>隐私政策更新时会在帮助页面同步展示，继续使用本工具即表示接受更新。</p>
-                                    <p class="mt-2 text-xs text-gray-400">最后更新：2026年4月</p>
-                                </div>
-                            </div>
+                            <div class="help-card"><h4 class="font-semibold text-gray-800 text-md flex items-center"><i class="fa fa-file-text-o text-primary mr-2"></i>用户协议</h4><div class="text-sm text-gray-600 space-y-2 mt-2"><p><strong>1. 服务说明</strong><br>“作业管理大师”（以下简称本工具）是一款面向教育场景的本地作业统计工具。所有数据默认存储在用户浏览器的本地存储（LocalStorage）中，不上传任何服务器，用户对自己的数据拥有完全控制权。</p><p><strong>2. 使用规范</strong><br>您应当合法使用本工具，不得利用本工具存储、传播违法信息或侵犯他人权益的内容。您需自行承担因使用不当造成的一切后果。</p><p><strong>3. 免责声明</strong><br>本工具按“现状”提供，开发者不保证服务完全没有中断或错误。因浏览器缓存清理、本地数据损坏、设备丢失等导致的任何数据丢失，开发者不承担责任。建议用户定期使用“数据同步”功能备份数据。</p><p><strong>4. 知识产权</strong><br>本工具的代码、界面设计、图标等知识产权归开发者【蒋昊辰】所有。未经授权，不得反编译、二次销售或用于商业牟利。</p><p><strong>5. 条款修改</strong><br>开发者有权更新本协议，更新后的协议会在帮助页面展示。若您继续使用则视为同意修改。</p><p><strong>6. 联系方式</strong><br>如有问题或建议，请通过校内渠道联系开发者。</p></div></div>
+                            <div class="help-card"><h4 class="font-semibold text-gray-800 text-md flex items-center"><i class="fa fa-shield text-primary mr-2"></i>隐私政策</h4><div class="text-sm text-gray-600 space-y-2 mt-2"><p><strong>1. 数据收集范围</strong><br>本工具<strong class="text-primary">不收集任何个人隐私信息上传至云端</strong>。所有您创建的班级、学生姓名、学号、作业提交状态、备注以及二维码数据，均仅保存在您当前浏览器的本地存储中。开发者无法访问、读取或获取您的任何数据。</p><p><strong>2. 摄像头权限</strong><br>当您使用“扫码统计作业”功能时，本工具会请求访问摄像头权限，仅用于扫描二维码识别姓名，处理过程完全在您的设备本地完成，不会产生任何录像、截图或数据上传。您可随时通过浏览器设置撤销该权限。</p><p><strong>3. 第三方服务</strong><br>本工具使用了开源的 jsQR 库用于二维码解析、XLSX 用于 Excel 导入、QRCode 库用于生成二维码，这些依赖库均在本地执行，不会向任何外部服务器发送您的数据。</p><p><strong>4. 数据导出与分享</strong><br>您使用“生成同步码”导出的压缩数据中包含您的全部班级与学生信息，该同步码由您自行保管，请勿分享给不可信第三方。若要彻底清除数据，可清除浏览器缓存或使用浏览器开发者工具清除 LocalStorage。</p><p><strong>5. 未成年人保护</strong><br>教师或家长作为管理者应合法使用学生信息，确保符合《未成年人保护法》及相关法规。本工具仅作为效率辅助，不可滥用。</p><p><strong>6. 政策更新</strong><br>隐私政策更新时会在帮助页面同步展示，继续使用本工具即表示接受更新。</p><p class="mt-2 text-xs text-gray-400">最后更新：2026年4月</p></div></div>
                         </div>
                     </div>
                 </div>
@@ -341,496 +347,66 @@
 </footer>
 
 <script>
-// ==================== 多作业核心 ====================
+// ------------- 核心逻辑（含历史完整名单，无帮助页特殊高亮） -------------
 let currentClass = null;
 let classes = JSON.parse(localStorage.getItem("homeworkClasses")) || [];
 let currentHomeworkName = localStorage.getItem("currentHomeworkName") || "默认作业";
 let students = JSON.parse(localStorage.getItem("homeworkStudents")) || [];
 let historyRecords = JSON.parse(localStorage.getItem("homeworkHistory")) || [];
 
-// 页面切换控制
-function showMainPage() {
-    document.getElementById("mainContent").classList.remove("hidden");
-    document.getElementById("helpPage").classList.add("hidden");
-}
-
-function showHelpPage() {
-    document.getElementById("mainContent").classList.add("hidden");
-    document.getElementById("helpPage").classList.remove("hidden");
-}
-
-function initHelpTabs() {
-    const navBtns = document.querySelectorAll(".help-nav-btn");
-    const tabs = document.querySelectorAll(".help-tab-content");
-    
-    function switchTab(tabId) {
-        tabs.forEach(tab => tab.classList.add("hidden"));
-        const activeTab = document.getElementById(tabId + "Content");
-        if (activeTab) activeTab.classList.remove("hidden");
-        navBtns.forEach(btn => {
-            if (btn.dataset.tab === tabId) {
-                btn.classList.add("bg-primary/10", "text-primary");
-            } else {
-                btn.classList.remove("bg-primary/10", "text-primary");
-            }
-        });
-    }
-    
-    navBtns.forEach(btn => {
-        btn.onclick = () => switchTab(btn.dataset.tab);
-    });
-    
-    switchTab("usage");
-}
-
-function getAllHomeworkNames() {
-    const names = new Set();
-    students.forEach(s => {
-        if (s.homeworkStatus) Object.keys(s.homeworkStatus).forEach(n => names.add(n));
-        if (s.notes) Object.keys(s.notes).forEach(n => names.add(n));
-    });
-    if (names.size === 0) names.add("默认作业");
-    if (currentHomeworkName && !names.has(currentHomeworkName)) names.add(currentHomeworkName);
-    return Array.from(names).sort();
-}
-
-function refreshHomeworkSelector() {
-    const selector = document.getElementById("homeworkSelector");
-    if (!selector) return;
-    const allHomeworks = getAllHomeworkNames();
-    const currentVal = currentHomeworkName;
-    let html = '<option value="__NEW__">✨ 新建作业...</option>';
-    allHomeworks.forEach(hw => {
-        const selected = (hw === currentVal) ? 'selected' : '';
-        html += `<option value="${escapeHtmlForAttr(hw)}" ${selected}>📋 ${escapeHtml(hw)}</option>`;
-    });
-    selector.innerHTML = html;
-}
-
-function escapeHtmlForAttr(str) { return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-
-function switchToHomework(homeworkName) {
-    if (!homeworkName || homeworkName === "__NEW__") return false;
-    if (homeworkName === currentHomeworkName) return true;
-    students.forEach(s => {
-        if (!s.homeworkStatus) s.homeworkStatus = {};
-        if (s.homeworkStatus[homeworkName] === undefined) s.homeworkStatus[homeworkName] = false;
-        if (!s.notes) s.notes = {};
-        if (s.notes[homeworkName] === undefined) s.notes[homeworkName] = "";
-    });
-    currentHomeworkName = homeworkName;
-    localStorage.setItem("currentHomeworkName", currentHomeworkName);
-    saveData();
-    updateHomeworkNameUI();
-    renderTwoColumnList();
-    updateStats();
-    refreshHomeworkSelector();
-    showToast(`已切换至「${currentHomeworkName}」`, "success");
-    return true;
-}
-
-function createNewHomeworkFromPrompt() {
-    let newName = prompt("请输入新作业名称：", `作业${getAllHomeworkNames().length+1}`);
-    if (!newName || newName.trim() === "") return false;
-    newName = newName.trim();
-    if (getAllHomeworkNames().includes(newName)) {
-        alert("作业名称已存在，可直接切换");
-        return false;
-    }
-    students.forEach(s => {
-        if (!s.homeworkStatus) s.homeworkStatus = {};
-        if (s.homeworkStatus[newName] === undefined) s.homeworkStatus[newName] = false;
-        if (!s.notes) s.notes = {};
-        if (s.notes[newName] === undefined) s.notes[newName] = "";
-    });
-    currentHomeworkName = newName;
-    localStorage.setItem("currentHomeworkName", currentHomeworkName);
-    saveData();
-    updateHomeworkNameUI();
-    renderTwoColumnList();
-    updateStats();
-    refreshHomeworkSelector();
-    showToast(`✅ 新建作业「${currentHomeworkName}」并已切换`, "success");
-    return true;
-}
-
-function deleteCurrentHomework() {
-    const allHomeworks = getAllHomeworkNames();
-    if (allHomeworks.length <= 1) {
-        alert("至少保留一个作业，无法删除最后一个作业");
-        return false;
-    }
-    if (!confirm(`确定要删除作业「${currentHomeworkName}」吗？\n该作业下所有学生的提交状态和备注将被永久清除。`)) {
-        return false;
-    }
-    students.forEach(s => {
-        if (s.homeworkStatus && s.homeworkStatus[currentHomeworkName] !== undefined) {
-            delete s.homeworkStatus[currentHomeworkName];
-        }
-        if (s.notes && s.notes[currentHomeworkName] !== undefined) {
-            delete s.notes[currentHomeworkName];
-        }
-    });
-    const remaining = allHomeworks.filter(h => h !== currentHomeworkName);
-    const newHomework = remaining[0] || "默认作业";
-    currentHomeworkName = newHomework;
-    localStorage.setItem("currentHomeworkName", currentHomeworkName);
-    saveData();
-    updateHomeworkNameUI();
-    renderTwoColumnList();
-    updateStats();
-    refreshHomeworkSelector();
-    showToast(`已删除作业，当前切换至「${currentHomeworkName}」`, "warning");
-    return true;
-}
-
-function recordCurrentStatAndReset() {
-    if (!currentClass) {
-        alert("请先选择班级");
-        return;
-    }
-    const classStudents = students.filter(s => s.class === currentClass);
-    if (classStudents.length === 0) {
-        alert("当前班级没有学生，无法记录");
-        return;
-    }
-    
-    const submittedStudents = classStudents.filter(s => getSubmissionStatus(s)).map(s => ({ id: s.id, name: s.name }));
-    const unsubmittedStudents = classStudents.filter(s => !getSubmissionStatus(s)).map(s => ({ id: s.id, name: s.name }));
-    const totalCount = classStudents.length;
-    const submittedCount = submittedStudents.length;
-    
-    const record = {
-        id: Date.now(),
-        homeworkName: currentHomeworkName,
-        className: currentClass,
-        timestamp: new Date().toISOString(),
-        submittedList: submittedStudents,
-        unsubmittedList: unsubmittedStudents,
-        totalCount: totalCount,
-        submittedCount: submittedCount,
-        unsubmittedCount: unsubmittedStudents.length,
-        summary: `${submittedCount}/${totalCount} 人已提交，${unsubmittedStudents.length} 人未提交`
-    };
-    historyRecords.unshift(record);
-    if (historyRecords.length > 100) historyRecords = historyRecords.slice(0, 100);
-    
-    classStudents.forEach(s => {
-        if (!s.homeworkStatus) s.homeworkStatus = {};
-        s.homeworkStatus[currentHomeworkName] = false;
-    });
-    
-    localStorage.setItem("homeworkHistory", JSON.stringify(historyRecords));
-    saveData();
-    
-    renderHistoryList();
-    renderTwoColumnList();
-    updateStats();
-    
-    showToast(`✅ 已记录「${currentHomeworkName}」完成情况：${submittedCount}/${totalCount}，并已重置所有学生为未提交`, "success");
-}
-
-function renderHistoryList() {
-    const container = document.getElementById("historyList");
-    if (!container) return;
-    if (historyRecords.length === 0) {
-        container.innerHTML = '<div class="text-center text-gray-400 text-sm py-4">暂无历史记录</div>';
-        return;
-    }
-    container.innerHTML = "";
-    historyRecords.forEach(record => {
-        const date = new Date(record.timestamp);
-        const dateStr = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}:${date.getSeconds().toString().padStart(2,'0')}`;
-        const div = document.createElement("div");
-        div.className = "history-item border-l-4 border-primary pl-3 py-2 bg-gray-50 rounded-r";
-        const submittedPreview = (record.submittedList || []).slice(0, 5).map(s => s.name).join(', ');
-        const unsubmittedPreview = (record.unsubmittedList || []).slice(0, 5).map(s => s.name).join(', ');
-        div.innerHTML = `<div class="flex justify-between items-start flex-wrap gap-1"><div><span class="font-semibold text-gray-800">📋 ${escapeHtml(record.homeworkName)}</span><span class="text-xs text-gray-500 ml-2">🏫 ${escapeHtml(record.className)}</span></div><span class="text-xs text-gray-400">${dateStr}</span></div><div class="text-sm mt-1"><span class="font-medium text-success">✅ ${record.submittedCount || 0}</span><span class="text-gray-500">/${record.totalCount} 已提交</span><span class="font-medium text-warning ml-2">📝 ${record.unsubmittedCount || 0}</span><span class="text-gray-500">/${record.totalCount} 未提交</span><span class="text-gray-400 text-xs ml-2">(${Math.round((record.submittedCount||0)/(record.totalCount||1)*100)}%)</span></div><div class="text-xs text-gray-500 mt-1"><div class="flex flex-wrap gap-x-3 gap-y-0.5"><span>✅ 已交: ${submittedPreview || '无'}${(record.submittedList || []).length > 5 ? ` 等${record.submittedList.length}人` : ''}</span><span>📝 未交: ${unsubmittedPreview || '无'}${(record.unsubmittedList || []).length > 5 ? ` 等${record.unsubmittedList.length}人` : ''}</span></div></div>`;
-        container.appendChild(div);
-    });
-}
-
-function clearHistory() {
-    if (confirm("确定要清空所有历史记录吗？")) {
-        historyRecords = [];
-        localStorage.setItem("homeworkHistory", JSON.stringify(historyRecords));
-        renderHistoryList();
-        showToast("历史记录已清空", "warning");
-    }
-}
-
-function onHomeworkSelectorChange() {
-    const selector = document.getElementById("homeworkSelector");
-    const selectedVal = selector.value;
-    if (selectedVal === "__NEW__") {
-        createNewHomeworkFromPrompt();
-        refreshHomeworkSelector();
-        if (currentHomeworkName) selector.value = currentHomeworkName;
-    } else {
-        switchToHomework(selectedVal);
-        selector.value = currentHomeworkName;
-    }
-}
-
-function showToast(msg, type = "info") {
-    const toast = document.createElement("div");
-    const bgColor = type === 'success' ? 'bg-success' : (type === 'warning' ? 'bg-warning' : 'bg-gray-800');
-    toast.className = `fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg text-white text-sm ${bgColor} transition-all duration-300`;
-    toast.innerText = msg;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2000);
-}
-
-function migrateStudentData() {
-    let changed = false;
-    students = students.map(s => {
-        let updated = false;
-        if (!s.homeworkStatus) { s.homeworkStatus = {}; updated = true; }
-        if (!s.notes) { s.notes = {}; updated = true; }
-        if (s.hasOwnProperty("submitted") && s.homeworkStatus[currentHomeworkName] === undefined) {
-            s.homeworkStatus[currentHomeworkName] = !!s.submitted;
-            updated = true;
-            delete s.submitted;
-        }
-        if (s.note && typeof s.note === "string") {
-            s.notes[currentHomeworkName] = s.note;
-            updated = true;
-            delete s.note;
-        }
-        return updated ? s : s;
-    });
-    if (changed) saveData();
-}
-function ensureStudentsHomeworkField() {
-    students.forEach(s => {
-        if (!s.homeworkStatus) s.homeworkStatus = {};
-        if (!s.notes) s.notes = {};
-        if (s.homeworkStatus[currentHomeworkName] === undefined) s.homeworkStatus[currentHomeworkName] = false;
-        if (s.notes[currentHomeworkName] === undefined) s.notes[currentHomeworkName] = "";
-    });
-}
-
-function saveData() {
-    localStorage.setItem("homeworkClasses", JSON.stringify(classes));
-    localStorage.setItem("homeworkStudents", JSON.stringify(students));
-    localStorage.setItem("currentHomeworkName", currentHomeworkName);
-    localStorage.setItem("homeworkHistory", JSON.stringify(historyRecords));
-}
-function updateHomeworkNameUI() {
-    const displaySpan = document.getElementById("currentHomeworkDisplay");
-    if (displaySpan) displaySpan.textContent = currentHomeworkName;
-}
-function getSubmissionStatus(student) { return student.homeworkStatus?.[currentHomeworkName] === true; }
-function setSubmissionStatus(student, value) { 
-    if (!student.homeworkStatus) student.homeworkStatus = {};
-    student.homeworkStatus[currentHomeworkName] = value;
-}
-function getStudentNote(student) { return student.notes?.[currentHomeworkName] || ""; }
-function setStudentNote(student, content) {
-    if (!student.notes) student.notes = {};
-    student.notes[currentHomeworkName] = content;
-}
-
-// DOM 元素获取、事件绑定等（保持原逻辑）
-const classNameInput = document.getElementById("classNameInput");
-const addClassBtn = document.getElementById("addClassBtn");
-const classListDiv = document.getElementById("classList");
-const mainFunctions = document.getElementById("mainFunctions");
-const studentName = document.getElementById("studentName");
-const studentId = document.getElementById("studentId");
-const addStudentBtn = document.getElementById("addStudentBtn");
-const excelFile = document.getElementById("excelFile");
-const scanHomeworkBtn = document.getElementById("scanHomeworkBtn");
-const completeStatBtn = document.getElementById("completeStatBtn");
-const clearHistoryBtn = document.getElementById("clearHistoryBtn");
-const scanModal = document.getElementById("scanModal");
-const closeScanBtn = document.getElementById("closeScanBtn");
-const video = document.getElementById("video");
-const scanCanvas = document.getElementById("scanCanvas");
-const studentInfoCard = document.getElementById("studentInfoCard");
-const infoName = document.getElementById("infoName");
-const infoId = document.getElementById("infoId");
-const infoStatus = document.getElementById("infoStatus");
-const unsubmittedList = document.getElementById("unsubmittedList");
-const submittedList = document.getElementById("submittedList");
-const studentListTitle = document.getElementById("studentListTitle");
-const submittedCount = document.getElementById("submittedCount");
-const totalCount = document.getElementById("totalCount");
-const generateAllQrBtn = document.getElementById("generateAllQrBtn");
-const exportAllQrBtn = document.getElementById("exportAllQrBtn");
-const currentDateSpan = document.getElementById("current-date");
-const homeworkSelector = document.getElementById("homeworkSelector");
-const resetHomeworkBtn = document.getElementById("resetHomeworkBtn");
-const deleteHomeworkBtn = document.getElementById("deleteHomeworkBtn");
-const homeBtn = document.getElementById("homeBtn");
-const helpBtn = document.getElementById("helpBtn");
-const qrModal = document.getElementById("qrModal");
-const closeQrBtn = document.getElementById("closeQrBtn");
-const qrStudentName = document.getElementById("qrStudentName");
-const previewCanvas = document.getElementById("previewCanvas");
-const genQrBtn = document.getElementById("genQrBtn");
-const exportQrBtn = document.getElementById("exportQrBtn");
-const noteModal = document.getElementById("noteModal");
-const closeNoteBtn = document.getElementById("closeNoteBtn");
-const noteStudentName = document.getElementById("noteStudentName");
-const noteInput = document.getElementById("noteInput");
-const saveNoteBtn = document.getElementById("saveNoteBtn");
-const genCopySyncBtnMain = document.getElementById("genCopySyncBtnMain");
-const pasteParseSyncBtnMain = document.getElementById("pasteParseSyncBtnMain");
-const footerLegalLink = document.getElementById("footerLegalLink");
-
-currentDateSpan.textContent = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-function playBeep() { try { const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const oscillator = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); oscillator.connect(gainNode); gainNode.connect(audioCtx.destination); oscillator.frequency.value = 880; gainNode.gain.value = 0.2; oscillator.type = "sine"; oscillator.start(); gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3); oscillator.stop(audioCtx.currentTime + 0.3); setTimeout(() => audioCtx.close(), 400); } catch(e) { } }
-function updateStats() { if (!currentClass) { totalCount.textContent = "0"; submittedCount.textContent = "0"; return; } const list = students.filter(s => s.class === currentClass); totalCount.textContent = list.length; submittedCount.textContent = list.filter(s => getSubmissionStatus(s)).length; }
-function renderClassList() { /* 复用原有逻辑，此处略简但不影响核心 */ classListDiv.innerHTML = ""; if (classes.length === 0) { currentClass = null; checkClassVisibility(); return; } classes.forEach(className => { const tag = document.createElement("span"); tag.className = `px-3 py-1.5 rounded-full text-sm cursor-pointer btn-hover inline-flex items-center gap-1.5 ${currentClass === className ? "bg-primary text-white" : "bg-neutral text-gray-700 hover:bg-primary/10"}`; tag.innerHTML = `<span>${escapeHtml(className)}</span><i class="fa fa-pencil-square-o text-xs cursor-pointer" data-rename></i><i class="fa fa-times text-xs cursor-pointer" data-delete></i>`; const renameIcon = tag.querySelector("[data-rename]"); const deleteIcon = tag.querySelector("[data-delete]"); tag.onclick = (e) => { if(e.target !== renameIcon && e.target !== deleteIcon) selectClass(className); }; renameIcon.onclick = (e) => { e.stopPropagation(); renameClass(className); }; deleteIcon.onclick = (e) => { e.stopPropagation(); deleteClass(className); }; classListDiv.appendChild(tag); }); if (!currentClass && classes.length) selectClass(classes[0]); checkClassVisibility(); }
-function selectClass(className) { currentClass = className; studentListTitle.textContent = `${className} - 学生列表`; renderClassList(); renderTwoColumnList(); updateStats(); checkClassVisibility(); renderHistoryList(); }
-function renameClass(oldName) { const newName = prompt("新班级名", oldName); if (newName && newName.trim() && !classes.includes(newName.trim())) { const idx = classes.indexOf(oldName); classes[idx] = newName.trim(); students = students.map(s => s.class === oldName ? { ...s, class: newName.trim() } : s); if (currentClass === oldName) currentClass = newName.trim(); saveData(); renderClassList(); renderTwoColumnList(); updateStats(); } else if (classes.includes(newName?.trim())) alert("班级已存在"); }
-function deleteClass(className) { if (confirm(`删除班级【${className}】？`)) { classes = classes.filter(c => c !== className); students = students.filter(s => s.class !== className); if (currentClass === className) currentClass = classes[0] || null; saveData(); renderClassList(); renderTwoColumnList(); updateStats(); checkClassVisibility(); renderHistoryList(); } }
-function checkClassVisibility() { mainFunctions.classList.toggle("hidden", classes.length === 0 || !currentClass); }
-
-// 事件绑定（核心操作保持不变）
-addClassBtn.onclick = () => { const name = classNameInput.value.trim(); if (!name) return alert("请输入班级名"); if (classes.includes(name)) return alert("班级已存在"); classes.push(name); classNameInput.value = ""; saveData(); renderClassList(); if (!currentClass) selectClass(name); };
-addStudentBtn.onclick = () => { if (!currentClass) return alert("先选择班级"); const name = studentName.value.trim(), id = studentId.value.trim(); if (!name || !id) return alert("完整信息"); if (students.some(s => s.id === id && s.class === currentClass)) return alert("学号重复"); students.push({ id, name, class: currentClass, homeworkStatus: { [currentHomeworkName]: false }, notes: { [currentHomeworkName]: "" }, qrCode: "" }); students.sort((a,b) => (parseInt(a.id)||0) - (parseInt(b.id)||0)); studentName.value = ""; studentId.value = ""; saveData(); renderTwoColumnList(); updateStats(); };
-excelFile.onchange = (e) => { if (!currentClass) return alert("选班级"); const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (ev) => { try { const workbook = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' }); const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]); if (!jsonData[0]?.hasOwnProperty('姓名') || !jsonData[0]?.hasOwnProperty('学号')) throw new Error("需姓名学号列"); let count = 0; jsonData.forEach(row => { const name = row['姓名']?.toString().trim(), id = row['学号']?.toString().trim(); if (name && id && !students.some(s => s.id === id && s.class === currentClass)) { students.push({ id, name, class: currentClass, homeworkStatus: { [currentHomeworkName]: false }, notes: { [currentHomeworkName]: "" }, qrCode: "" }); count++; } }); students.sort((a,b) => (parseInt(a.id)||0) - (parseInt(b.id)||0)); saveData(); renderTwoColumnList(); updateStats(); alert(`导入 ${count} 人`); } catch(err) { alert("导入失败"); } }; reader.readAsArrayBuffer(file); e.target.value = ''; };
-function renderTwoColumnList() { if (!currentClass) { unsubmittedList.innerHTML = ""; submittedList.innerHTML = ""; return; } let list = students.filter(s => s.class === currentClass); list.sort((a,b) => (parseInt(a.id)||0) - (parseInt(b.id)||0)); const unsubmitted = list.filter(s => !getSubmissionStatus(s)); const submitted = list.filter(s => getSubmissionStatus(s)); unsubmittedList.innerHTML = ""; submittedList.innerHTML = ""; const createItem = (s) => { const div = document.createElement("div"); div.className = "flex items-center justify-between p-2.5 border rounded-lg text-sm flex-wrap gap-2 bg-white hover:shadow-sm transition-shadow"; const notePreview = getStudentNote(s) ? `<div class="text-xs text-gray-500 mt-1 truncate max-w-[180px]">📝 ${escapeHtml(getStudentNote(s))}</div>` : ""; div.innerHTML = `<div class="flex-1"><span class="font-medium">${escapeHtml(s.name)}</span><span class="text-xs text-gray-500 ml-2">${escapeHtml(s.id)}</span>${notePreview}</div><div class="flex gap-1.5"><button class="toggle btn-sm ${getSubmissionStatus(s) ? 'bg-gray-500' : 'bg-success'} text-white" data-id="${s.id}">${getSubmissionStatus(s) ? '撤销' : '提交'}</button><button class="note-btn btn-sm bg-warning text-white" data-id="${s.id}">备注</button><button class="gen btn-sm bg-primary text-white" data-id="${s.id}">二维码</button><button class="del btn-sm bg-danger text-white" data-id="${s.id}">删除</button></div>`; return div; }; unsubmitted.forEach(s => unsubmittedList.appendChild(createItem(s))); submitted.forEach(s => submittedList.appendChild(createItem(s))); document.querySelectorAll('.toggle').forEach(btn => btn.onclick = () => { let s = students.find(x => x.id === btn.dataset.id && x.class === currentClass); if(s){ setSubmissionStatus(s, !getSubmissionStatus(s)); saveData(); renderTwoColumnList(); updateStats(); } }); document.querySelectorAll('.note-btn').forEach(btn => btn.onclick = () => openNoteModal(btn.dataset.id)); document.querySelectorAll('.gen').forEach(btn => btn.onclick = () => openQrModal(btn.dataset.id)); document.querySelectorAll('.del').forEach(btn => btn.onclick = () => { if(confirm("删除？")){ students = students.filter(x => !(x.id === btn.dataset.id && x.class === currentClass)); saveData(); renderTwoColumnList(); updateStats(); } }); }
 function escapeHtml(str) { return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
-function openNoteModal(studentId) { const s = students.find(x => x.id === studentId && x.class === currentClass); if(s){ noteStudentName.textContent = s.name; noteInput.value = getStudentNote(s); noteModal.classList.remove("hidden"); window.currentNoteTarget = s; } }
-closeNoteBtn.onclick = () => noteModal.classList.add("hidden");
-saveNoteBtn.onclick = () => { if(window.currentNoteTarget){ setStudentNote(window.currentNoteTarget, noteInput.value.trim()); saveData(); renderTwoColumnList(); } noteModal.classList.add("hidden"); showToast("备注已保存","success"); };
-function openQrModal(studentId) { const s = students.find(x => x.id === studentId && x.class === currentClass); if(s){ qrStudentName.textContent = s.name; qrModal.classList.remove("hidden"); window.currentQrStudent = s; if(s.qrCode) { let img=new Image(); img.onload=()=>previewCanvas.getContext('2d').drawImage(img,0,0,180,180); img.src=s.qrCode; } else previewCanvas.getContext('2d').clearRect(0,0,180,180); } }
-closeQrBtn.onclick = () => qrModal.classList.add("hidden");
-genQrBtn.onclick = () => { let s = window.currentQrStudent; if(s){ QRCode.toCanvas(previewCanvas, `班级：${s.class}\n学号：${s.id}\n姓名：${s.name}`, { width:180, margin:1 }, err=>{ if(!err){ s.qrCode=previewCanvas.toDataURL("image/png"); saveData(); alert("生成成功"); } else alert("失败"); }); } };
-exportQrBtn.onclick = () => { let s = window.currentQrStudent; if(s?.qrCode){ let a=document.createElement("a"); a.download=`${s.name}_${s.id}.png`; a.href=s.qrCode; a.click(); } else alert("先生成二维码"); };
-generateAllQrBtn.onclick = async () => { if(!currentClass) return; let list=students.filter(s=>s.class===currentClass); if(!list.length) return; if(!confirm("为全班生成二维码？")) return; let success=0; for(let s of list){ try{ await new Promise((res,rej)=>QRCode.toCanvas(previewCanvas,`班级：${s.class}\n学号：${s.id}\n姓名：${s.name}`,{width:180,margin:1},err=>err?rej():res())); s.qrCode=previewCanvas.toDataURL("image/png"); success++; }catch(e){} } saveData(); alert(`生成 ${success} 个`); };
-exportAllQrBtn.onclick = async () => { if(!currentClass) return; let list=students.filter(s=>s.class===currentClass&&s.qrCode); if(!list.length) return alert("无二维码"); let zip=new JSZip(); let folder=zip.folder(`${currentClass}_二维码`); list.forEach(s=>folder.file(`${s.name}_${s.id}.png`,s.qrCode.split(',')[1],{base64:true})); let blob=await zip.generateAsync({type:"blob"}); saveAs(blob,`${currentClass}_二维码包.zip`); alert("导出完成"); };
-resetHomeworkBtn.onclick = () => { if(!currentClass) return; if(confirm(`重置「${currentHomeworkName}」所有提交状态？`)){ students.forEach(s=>{ if(s.class===currentClass) setSubmissionStatus(s,false); }); saveData(); renderTwoColumnList(); updateStats(); showToast(`已重置「${currentHomeworkName}」状态`,"success"); } };
-deleteHomeworkBtn.onclick = () => { deleteCurrentHomework(); };
-completeStatBtn.onclick = () => { recordCurrentStatAndReset(); };
-clearHistoryBtn.onclick = () => { clearHistory(); };
-
-// ==================== 修复后的扫码逻辑 ====================
-let currentStream = null;
-let scanningActive = false;
-let scanAnimationId = null;
-let lastScannedId = null;
-
-function stopScanning() {
-    if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-        currentStream = null;
-    }
-    if (scanAnimationId) {
-        cancelAnimationFrame(scanAnimationId);
-        scanAnimationId = null;
-    }
-    scanningActive = false;
-}
-
-function startHomeworkScanner() {
-    stopScanning();
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(stream => {
-            currentStream = stream;
-            const videoEl = document.getElementById("video");
-            videoEl.srcObject = stream;
-            videoEl.play().catch(e => console.warn(e));
-            scanningActive = true;
-            scanLoop();
-        })
-        .catch(err => {
-            alert("无法开启摄像头，请检查权限: " + err.message);
-        });
-}
-
-function scanLoop() {
-    if (!scanningActive) return;
-    const videoEl = document.getElementById("video");
-    const canvas = document.getElementById("scanCanvas");
-    const modal = document.getElementById("scanModal");
-    
-    if (!modal || modal.classList.contains("hidden") || !videoEl.videoWidth || !videoEl.videoHeight) {
-        scanAnimationId = requestAnimationFrame(scanLoop);
-        return;
-    }
-    
-    canvas.width = videoEl.videoWidth;
-    canvas.height = videoEl.videoHeight;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(imageData.data, canvas.width, canvas.height);
-    
-    if (code) {
-        // 匹配学号：支持 "学号：123" 或 "学号: 123" 格式
-        const match = code.data.match(/学号[：:]\s*(\S+)/);
-        if (match && match[1]) {
-            const id = match[1].trim();
-            // 防重复扫描同一学号
-            if (lastScannedId === id) {
-                scanAnimationId = requestAnimationFrame(scanLoop);
-                return;
-            }
-            lastScannedId = id;
-            setTimeout(() => { lastScannedId = null; }, 800);
-            
-            const student = students.find(x => x.id === id && x.class === currentClass);
-            if (student) {
-                playBeep();
-                infoName.textContent = `${student.name}`;
-                infoId.textContent = `学号：${student.id}`;
-                studentInfoCard.classList.remove("hidden");
-                
-                if (!getSubmissionStatus(student)) {
-                    setSubmissionStatus(student, true);
-                    saveData();
-                    renderTwoColumnList();
-                    updateStats();
-                    infoStatus.textContent = `✅ 作业「${currentHomeworkName}」已提交`;
-                    infoStatus.className = "mt-1 text-sm font-medium text-success bg-green-50 px-2 py-1 rounded";
-                } else {
-                    infoStatus.textContent = `⚠️ 作业「${currentHomeworkName}」已提交过`;
-                    infoStatus.className = "mt-1 text-sm font-medium text-warning bg-orange-50 px-2 py-1 rounded";
-                }
-            } else {
-                playBeep();
-                infoName.textContent = "未找到学生";
-                infoId.textContent = "请检查班级或学号";
-                infoStatus.textContent = "❌ 无此学生";
-                infoStatus.className = "mt-1 text-sm font-medium text-danger bg-red-50 px-2 py-1 rounded";
-                studentInfoCard.classList.remove("hidden");
-            }
-        }
-    }
-    scanAnimationId = requestAnimationFrame(scanLoop);
-}
-
-scanHomeworkBtn.onclick = () => {
-    if (!currentClass) {
-        alert("请先选择一个班级");
-        return;
-    }
-    scanModal.classList.remove("hidden");
-    startHomeworkScanner();
-};
-
-closeScanBtn.onclick = () => {
-    scanModal.classList.add("hidden");
-    stopScanning();
-    studentInfoCard.classList.add("hidden");
-};
-
-function generateFullSyncPayload(){ return { v:"3.0", ts:Date.now(), classes, currentHomeworkName, students: students.map(s=>({ id:s.id, name:s.name, class:s.class, homeworkStatus:s.homeworkStatus||{}, notes:s.notes||{}, qrCode:s.qrCode||"" })), historyRecords }; }
-function compressSyncData(){ return LZString.compressToBase64(JSON.stringify(generateFullSyncPayload())); }
-function parseAndMergeSyncData(compressed){ try{ let data=JSON.parse(LZString.decompressFromBase64(compressed)); if(data.v!=="3.0") throw "版本"; let newClasses=[...classes]; data.classes.forEach(c=>{if(!newClasses.includes(c)) newClasses.push(c);}); let newStudents=[...students]; data.students.forEach(remote=>{ let idx=newStudents.findIndex(l=>l.class===remote.class && l.id===remote.id); if(idx===-1) newStudents.push(remote); else newStudents[idx]=remote; }); classes=newClasses; students=newStudents; if(data.currentHomeworkName) currentHomeworkName=data.currentHomeworkName; if(data.historyRecords) historyRecords = data.historyRecords; saveData(); renderClassList(); if(currentClass) renderTwoColumnList(); updateStats(); updateHomeworkNameUI(); refreshHomeworkSelector(); renderHistoryList(); return true; }catch(e){ return false; } }
-function showSyncCodeModal(){ let compressed=compressSyncData(); let modalDiv=document.createElement("div"); modalDiv.className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"; modalDiv.innerHTML=`<div class="bg-white rounded-lg w-full max-w-md p-5 relative"><button id="closeSyncModalX" class="absolute right-3 top-3 text-gray-500"><i class="fa fa-times"></i></button><h3 class="text-lg font-semibold text-center">同步码</h3><textarea id="syncCodeArea" class="w-full h-28 text-xs font-mono border rounded p-2 my-3" readonly>${compressed}</textarea><button id="doCopySync" class="bg-primary text-white px-4 py-2 rounded w-full">复制</button></div>`; document.body.appendChild(modalDiv); modalDiv.querySelector("#closeSyncModalX").onclick=()=>modalDiv.remove(); modalDiv.querySelector("#doCopySync").onclick=async()=>{ await navigator.clipboard.writeText(compressed); alert("已复制"); modalDiv.remove(); }; }
-genCopySyncBtnMain.onclick=showSyncCodeModal;
-pasteParseSyncBtnMain.onclick=async()=>{ let code=""; try{ code=await navigator.clipboard.readText(); }catch(e){ code=prompt("粘贴同步码"); } if(code&&parseAndMergeSyncData(code.trim())) alert("同步成功"); else alert("同步失败"); };
-if (homeworkSelector) homeworkSelector.addEventListener("change", onHomeworkSelectorChange);
-homeBtn.onclick = () => { showMainPage(); stopScanning(); };
-helpBtn.onclick = () => { showHelpPage(); initHelpTabs(); };
-footerLegalLink.onclick = (e) => { e.preventDefault(); showHelpPage(); initHelpTabs(); const legalBtn = Array.from(document.querySelectorAll(".help-nav-btn")).find(btn => btn.dataset.tab === "legal"); if(legalBtn) legalBtn.click(); };
-function init() { migrateStudentData(); ensureStudentsHomeworkField(); if(!currentHomeworkName) currentHomeworkName="默认作业"; updateHomeworkNameUI(); renderClassList(); renderTwoColumnList(); updateStats(); refreshHomeworkSelector(); renderHistoryList(); if(homeworkSelector) homeworkSelector.value = currentHomeworkName; showMainPage(); }
-init();
+function escapeHtmlForAttr(str) { return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function showToast(msg, type = "info") { const toast = document.createElement("div"); const bgColor = type === 'success' ? 'bg-success' : (type === 'warning' ? 'bg-warning' : 'bg-gray-800'); toast.className = `fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg text-white text-sm ${bgColor} transition-all duration-300`; toast.innerText = msg; document.body.appendChild(toast); setTimeout(() => toast.remove(), 2000); }
+function saveData() { localStorage.setItem("homeworkClasses", JSON.stringify(classes)); localStorage.setItem("homeworkStudents", JSON.stringify(students)); localStorage.setItem("currentHomeworkName", currentHomeworkName); localStorage.setItem("homeworkHistory", JSON.stringify(historyRecords)); }
+function updateHomeworkNameUI() { const displaySpan = document.getElementById("currentHomeworkDisplay"); if (displaySpan) displaySpan.textContent = currentHomeworkName; }
+function getSubmissionStatus(student) { return student.homeworkStatus?.[currentHomeworkName] === true; }
+function setSubmissionStatus(student, value) { if (!student.homeworkStatus) student.homeworkStatus = {}; student.homeworkStatus[currentHomeworkName] = value; }
+function getStudentNote(student) { return student.notes?.[currentHomeworkName] || ""; }
+function setStudentNote(student, content) { if (!student.notes) student.notes = {}; student.notes[currentHomeworkName] = content; }
+function updateStats() { if (!currentClass) { document.getElementById("totalCount").textContent = "0"; document.getElementById("submittedCount").textContent = "0"; return; } const list = students.filter(s => s.class === currentClass); document.getElementById("totalCount").textContent = list.length; document.getElementById("submittedCount").textContent = list.filter(s => getSubmissionStatus(s)).length; }
+function migrateStudentData() { students.forEach(s => { if (!s.homeworkStatus) s.homeworkStatus = {}; if (!s.notes) s.notes = {}; if (s.homeworkStatus[currentHomeworkName] === undefined) s.homeworkStatus[currentHomeworkName] = false; if (s.notes[currentHomeworkName] === undefined) s.notes[currentHomeworkName] = ""; }); saveData(); }
+function renderClassList() { const container = document.getElementById("classList"); if(!container) return; container.innerHTML = ""; if(classes.length === 0) { currentClass = null; document.getElementById("mainFunctions").classList.add("hidden"); return; } classes.forEach(className => { const tag = document.createElement("span"); tag.className = `px-3 py-1.5 rounded-full text-sm cursor-pointer btn-hover inline-flex items-center gap-1.5 ${currentClass === className ? "bg-primary text-white" : "bg-neutral text-gray-700 hover:bg-primary/10"}`; tag.innerHTML = `<span>${escapeHtml(className)}</span><i class="fa fa-pencil-square-o text-xs cursor-pointer" data-rename></i><i class="fa fa-times text-xs cursor-pointer" data-delete></i>`; const renameIcon = tag.querySelector("[data-rename]"); const deleteIcon = tag.querySelector("[data-delete]"); tag.onclick = (e) => { if(e.target !== renameIcon && e.target !== deleteIcon) selectClass(className); }; renameIcon.onclick = (e) => { e.stopPropagation(); const newName = prompt("新班级名", className); if(newName && newName.trim() && !classes.includes(newName.trim())) { const idx = classes.indexOf(className); classes[idx] = newName.trim(); students = students.map(s => s.class === className ? { ...s, class: newName.trim() } : s); if(currentClass === className) currentClass = newName.trim(); saveData(); renderClassList(); renderTwoColumnList(); updateStats(); } else if(classes.includes(newName?.trim())) alert("班级已存在"); }; deleteIcon.onclick = (e) => { e.stopPropagation(); if(confirm(`删除班级【${className}】？`)) { classes = classes.filter(c => c !== className); students = students.filter(s => s.class !== className); if(currentClass === className) currentClass = classes[0] || null; saveData(); renderClassList(); renderTwoColumnList(); updateStats(); document.getElementById("mainFunctions").classList.toggle("hidden", classes.length === 0 || !currentClass); renderHistoryList(); } }; container.appendChild(tag); }); if (!currentClass && classes.length) selectClass(classes[0]); document.getElementById("mainFunctions").classList.toggle("hidden", classes.length === 0 || !currentClass); }
+function selectClass(className) { currentClass = className; document.getElementById("studentListTitle").textContent = `${className} - 学生列表`; renderClassList(); renderTwoColumnList(); updateStats(); renderHistoryList(); }
+function renderTwoColumnList() { if (!currentClass) return; let list = students.filter(s => s.class === currentClass); list.sort((a,b) => (parseInt(a.id)||0) - (parseInt(b.id)||0)); const unsubmitted = list.filter(s => !getSubmissionStatus(s)); const submitted = list.filter(s => getSubmissionStatus(s)); const containerUn = document.getElementById("unsubmittedList"); const containerSub = document.getElementById("submittedList"); containerUn.innerHTML = ""; containerSub.innerHTML = ""; const createItem = (s) => { const div = document.createElement("div"); div.className = "flex items-center justify-between p-2.5 border rounded-lg text-sm flex-wrap gap-2 bg-white hover:shadow-sm transition-shadow"; const notePreview = getStudentNote(s) ? `<div class="text-xs text-gray-500 mt-1 truncate max-w-[180px]">📝 ${escapeHtml(getStudentNote(s))}</div>` : ""; div.innerHTML = `<div class="flex-1"><span class="font-medium">${escapeHtml(s.name)}</span><span class="text-xs text-gray-500 ml-2">${escapeHtml(s.id)}</span>${notePreview}</div><div class="flex gap-1.5"><button class="toggle btn-sm ${getSubmissionStatus(s) ? 'bg-gray-500' : 'bg-success'} text-white" data-id="${s.id}">${getSubmissionStatus(s) ? '撤销' : '提交'}</button><button class="note-btn btn-sm bg-warning text-white" data-id="${s.id}">备注</button><button class="gen btn-sm bg-primary text-white" data-id="${s.id}">二维码</button><button class="del btn-sm bg-danger text-white" data-id="${s.id}">删除</button></div>`; return div; }; unsubmitted.forEach(s => containerUn.appendChild(createItem(s))); submitted.forEach(s => containerSub.appendChild(createItem(s))); document.querySelectorAll('.toggle').forEach(btn => btn.onclick = () => { let s = students.find(x => x.id === btn.dataset.id && x.class === currentClass); if(s){ setSubmissionStatus(s, !getSubmissionStatus(s)); saveData(); renderTwoColumnList(); updateStats(); } }); document.querySelectorAll('.note-btn').forEach(btn => btn.onclick = () => openNoteModal(btn.dataset.id)); document.querySelectorAll('.gen').forEach(btn => btn.onclick = () => openQrModal(btn.dataset.id)); document.querySelectorAll('.del').forEach(btn => btn.onclick = () => { if(confirm("删除？")){ students = students.filter(x => !(x.id === btn.dataset.id && x.class === currentClass)); saveData(); renderTwoColumnList(); updateStats(); } }); }
+function openNoteModal(studentId){ const s = students.find(x => x.id === studentId && x.class === currentClass); if(s){ document.getElementById("noteStudentName").textContent = s.name; document.getElementById("noteInput").value = getStudentNote(s); document.getElementById("noteModal").classList.remove("hidden"); window.currentNoteTarget = s; } }
+function openQrModal(studentId){ const s = students.find(x => x.id === studentId && x.class === currentClass); if(s){ document.getElementById("qrStudentName").textContent = s.name; document.getElementById("qrModal").classList.remove("hidden"); window.currentQrStudent = s; if(s.qrCode) { let img=new Image(); img.onload=()=>document.getElementById("previewCanvas").getContext('2d').drawImage(img,0,0,180,180); img.src=s.qrCode; } else document.getElementById("previewCanvas").getContext('2d').clearRect(0,0,180,180); } }
+function renderHistoryList() { const container = document.getElementById("historyList"); if(!container) return; if(historyRecords.length === 0){ container.innerHTML = '<div class="text-center text-gray-400 text-sm py-4">暂无历史记录</div>'; return; } container.innerHTML = ""; historyRecords.forEach((record) => { const date = new Date(record.timestamp); const dateStr = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}:${date.getSeconds().toString().padStart(2,'0')}`; const div = document.createElement("div"); div.className = "history-item border-l-4 border-primary pl-3 py-2 bg-gray-50 rounded-r flex justify-between items-start flex-wrap gap-2"; const leftDiv = document.createElement("div"); leftDiv.className = "flex-1"; leftDiv.innerHTML = `<div class="flex justify-between items-start flex-wrap gap-1"><div><span class="font-semibold text-gray-800">📋 ${escapeHtml(record.homeworkName)}</span><span class="text-xs text-gray-500 ml-2">🏫 ${escapeHtml(record.className)}</span></div><span class="text-xs text-gray-400">${dateStr}</span></div><div class="text-sm mt-1"><span class="font-medium text-success">✅ ${record.submittedCount || 0}</span><span class="text-gray-500">/${record.totalCount} 已提交</span><span class="font-medium text-warning ml-2">📝 ${record.unsubmittedCount || 0}</span><span class="text-gray-500">/${record.totalCount} 未提交</span><span class="text-gray-400 text-xs ml-2">(${Math.round((record.submittedCount||0)/(record.totalCount||1)*100)}%)</span></div>`; const btn = document.createElement("button"); btn.className = "bg-primary/80 hover:bg-primary text-white text-xs px-3 py-1.5 rounded-full btn-hover flex items-center gap-1 shadow-sm shrink-0"; btn.innerHTML = '<i class="fa fa-users"></i> 完整名单'; btn.onclick = (e) => { e.stopPropagation(); showFullListModal(record); }; div.appendChild(leftDiv); div.appendChild(btn); container.appendChild(div); }); }
+function showFullListModal(record) { const modal = document.getElementById("fullListModal"); if(!modal) return; const metaSpan = document.getElementById("fullListMeta"); if(metaSpan) metaSpan.innerHTML = `📚 作业：${escapeHtml(record.homeworkName)} &nbsp;|&nbsp; 🏷️ 班级：${escapeHtml(record.className)} &nbsp;|&nbsp; 🕒 ${new Date(record.timestamp).toLocaleString()}`; const submittedList = record.submittedList || []; const unsubmittedList = record.unsubmittedList || []; document.getElementById("modalSubmittedCount").innerText = submittedList.length; document.getElementById("modalUnsubmittedCount").innerText = unsubmittedList.length; const submitContainer = document.getElementById("modalSubmittedList"); const unsubmitContainer = document.getElementById("modalUnsubmittedList"); if(submitContainer) submitContainer.innerHTML = submittedList.length ? submittedList.map(s => `<div class="flex items-center justify-between p-2 bg-white rounded-lg shadow-sm border border-green-200 text-sm"><span class="font-medium">${escapeHtml(s.name)}</span><span class="text-xs text-gray-500">${escapeHtml(s.id)}</span></div>`).join('') : '<div class="text-gray-400 text-center py-2 text-sm">暂无已提交学生</div>'; if(unsubmitContainer) unsubmitContainer.innerHTML = unsubmittedList.length ? unsubmittedList.map(s => `<div class="flex items-center justify-between p-2 bg-white rounded-lg shadow-sm border border-orange-200 text-sm"><span class="font-medium">${escapeHtml(s.name)}</span><span class="text-xs text-gray-500">${escapeHtml(s.id)}</span></div>`).join('') : '<div class="text-gray-400 text-center py-2 text-sm">暂无未提交学生</div>'; modal.classList.remove("hidden"); }
+document.getElementById("closeFullListBtn")?.addEventListener("click",()=>document.getElementById("fullListModal")?.classList.add("hidden"));
+// 扫码及其他原有完整逻辑
+let currentStream = null, scanningActive = false, scanAnimationId = null, lastScannedName = null;
+function stopScanning() { if (currentStream) { currentStream.getTracks().forEach(track => track.stop()); currentStream = null; } if (scanAnimationId) cancelAnimationFrame(scanAnimationId); scanningActive = false; }
+function startHomeworkScanner() { stopScanning(); navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(stream => { currentStream = stream; document.getElementById("video").srcObject = stream; document.getElementById("video").play().catch(e=>console.warn); scanningActive = true; scanLoop(); }).catch(err => alert("无法开启摄像头: "+err.message)); }
+function scanLoop() { if (!scanningActive) return; const videoEl = document.getElementById("video"); const canvas = document.getElementById("scanCanvas"); const modal = document.getElementById("scanModal"); if (!modal || modal.classList.contains("hidden") || !videoEl.videoWidth) { scanAnimationId = requestAnimationFrame(scanLoop); return; } canvas.width = videoEl.videoWidth; canvas.height = videoEl.videoHeight; const ctx = canvas.getContext("2d"); ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height); const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); const code = jsQR(imageData.data, canvas.width, canvas.height); if (code) { const match = code.data.match(/姓名[：:]\s*(\S+)/); if (match && match[1]) { const name = match[1].trim(); if (lastScannedName === name) { scanAnimationId = requestAnimationFrame(scanLoop); return; } lastScannedName = name; setTimeout(() => { lastScannedName = null; }, 800); const student = students.find(s => s.class === currentClass && s.name === name); if (student) { const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const oscillator = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); oscillator.connect(gainNode); gainNode.connect(audioCtx.destination); oscillator.frequency.value = 880; gainNode.gain.value = 0.2; oscillator.start(); gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3); oscillator.stop(audioCtx.currentTime + 0.3); setTimeout(() => audioCtx.close(), 400); document.getElementById("infoName").textContent = student.name; document.getElementById("infoId").textContent = `学号：${student.id}`; document.getElementById("studentInfoCard").classList.remove("hidden"); if (!getSubmissionStatus(student)) { setSubmissionStatus(student, true); saveData(); renderTwoColumnList(); updateStats(); const statusSpan = document.getElementById("infoStatus"); statusSpan.textContent = `✅ 作业「${currentHomeworkName}」已提交`; statusSpan.className = "mt-1 text-sm font-medium text-success bg-green-50 px-2 py-1 rounded"; } else { const statusSpan = document.getElementById("infoStatus"); statusSpan.textContent = `⚠️ 作业「${currentHomeworkName}」已提交过`; statusSpan.className = "mt-1 text-sm font-medium text-warning bg-orange-50 px-2 py-1 rounded"; } } else { playBeepError(); document.getElementById("infoName").textContent = "未找到学生"; document.getElementById("infoId").textContent = "请检查班级或姓名"; const statusSpan = document.getElementById("infoStatus"); statusSpan.textContent = "❌ 无此学生"; statusSpan.className = "mt-1 text-sm font-medium text-danger bg-red-50 px-2 py-1 rounded"; document.getElementById("studentInfoCard").classList.remove("hidden"); } } } scanAnimationId = requestAnimationFrame(scanLoop); }
+function playBeepError() { try { const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const oscillator = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); oscillator.connect(gainNode); gainNode.connect(audioCtx.destination); oscillator.frequency.value = 440; gainNode.gain.value = 0.15; oscillator.start(); gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.2); oscillator.stop(audioCtx.currentTime + 0.2); setTimeout(() => audioCtx.close(), 300); } catch(e) {} }
+document.getElementById("scanHomeworkBtn").onclick = () => { if (!currentClass) { alert("请先选择一个班级"); return; } document.getElementById("scanModal").classList.remove("hidden"); startHomeworkScanner(); };
+document.getElementById("closeScanBtn").onclick = () => { document.getElementById("scanModal").classList.add("hidden"); stopScanning(); document.getElementById("studentInfoCard").classList.add("hidden"); };
+document.getElementById("addClassBtn").onclick = () => { const name = document.getElementById("classNameInput").value.trim(); if(!name) return alert("请输入班级名"); if(classes.includes(name)) return alert("班级已存在"); classes.push(name); document.getElementById("classNameInput").value = ""; saveData(); renderClassList(); if (!currentClass) selectClass(name); };
+document.getElementById("addStudentBtn").onclick = () => { if(!currentClass) return alert("先选择班级"); const name = document.getElementById("studentName").value.trim(), id = document.getElementById("studentId").value.trim(); if(!name||!id) return alert("完整信息"); if(students.some(s=> s.id === id && s.class === currentClass)) return alert("学号重复"); students.push({ id, name, class: currentClass, homeworkStatus: { [currentHomeworkName]: false }, notes: { [currentHomeworkName]: "" }, qrCode: "" }); students.sort((a,b) => (parseInt(a.id)||0) - (parseInt(b.id)||0)); document.getElementById("studentName").value = ""; document.getElementById("studentId").value = ""; saveData(); renderTwoColumnList(); updateStats(); };
+document.getElementById("closeNoteBtn").onclick = () => document.getElementById("noteModal").classList.add("hidden");
+document.getElementById("saveNoteBtn").onclick = () => { if(window.currentNoteTarget){ setStudentNote(window.currentNoteTarget, document.getElementById("noteInput").value.trim()); saveData(); renderTwoColumnList(); } document.getElementById("noteModal").classList.add("hidden"); showToast("备注已保存","success"); };
+document.getElementById("closeQrBtn").onclick = () => document.getElementById("qrModal").classList.add("hidden");
+document.getElementById("genQrBtn").onclick = () => { let s = window.currentQrStudent; if(s){ QRCode.toCanvas(document.getElementById("previewCanvas"), `班级：${s.class}\n学号：${s.id}\n姓名：${s.name}`, { width:180, margin:1 }, err=>{ if(!err){ s.qrCode = document.getElementById("previewCanvas").toDataURL("image/png"); saveData(); alert("生成成功"); } else alert("失败"); }); } };
+document.getElementById("exportQrBtn").onclick = () => { let s = window.currentQrStudent; if(s?.qrCode){ let a=document.createElement("a"); a.download=`${s.name}_${s.id}.png`; a.href=s.qrCode; a.click(); } else alert("先生成二维码"); };
+document.getElementById("generateAllQrBtn").onclick = async () => { if(!currentClass) return; let list=students.filter(s=>s.class===currentClass); if(!list.length) return; if(!confirm("为全班生成二维码？")) return; let success=0; for(let s of list){ try{ await new Promise((res,rej)=>QRCode.toCanvas(document.getElementById("previewCanvas"),`班级：${s.class}\n学号：${s.id}\n姓名：${s.name}`,{width:180,margin:1},err=>err?rej():res())); s.qrCode=document.getElementById("previewCanvas").toDataURL("image/png"); success++; }catch(e){} } saveData(); alert(`生成 ${success} 个`); };
+document.getElementById("exportAllQrBtn").onclick = async () => { if(!currentClass) return; let list=students.filter(s=>s.class===currentClass&&s.qrCode); if(!list.length) return alert("无二维码"); let zip=new JSZip(); let folder=zip.folder(`${currentClass}_二维码`); list.forEach(s=>folder.file(`${s.name}_${s.id}.png`,s.qrCode.split(',')[1],{base64:true})); let blob=await zip.generateAsync({type:"blob"}); saveAs(blob,`${currentClass}_二维码包.zip`); alert("导出完成"); };
+document.getElementById("resetHomeworkBtn").onclick = () => { if(!currentClass) return; if(confirm(`重置「${currentHomeworkName}」所有提交状态？`)){ students.forEach(s=>{ if(s.class===currentClass) setSubmissionStatus(s,false); }); saveData(); renderTwoColumnList(); updateStats(); showToast(`已重置「${currentHomeworkName}」状态`,"success"); } };
+document.getElementById("deleteHomeworkBtn").onclick = () => { const all = [...new Set(students.flatMap(s=>Object.keys(s.homeworkStatus||{})))]; if(all.length<=1){ alert("至少保留一个作业"); return; } if(confirm(`删除作业「${currentHomeworkName}」？`)){ students.forEach(s=>{ delete s.homeworkStatus?.[currentHomeworkName]; delete s.notes?.[currentHomeworkName]; }); const remaining = all.filter(h=>h!==currentHomeworkName); currentHomeworkName = remaining[0]||"默认作业"; saveData(); updateHomeworkNameUI(); renderTwoColumnList(); updateStats(); document.getElementById("homeworkSelector").innerHTML = ""; refreshHomeworkSelector(); showToast(`已删除作业，当前切换至「${currentHomeworkName}」`,"warning"); } };
+function refreshHomeworkSelector() { const selector = document.getElementById("homeworkSelector"); if(!selector) return; const names = [...new Set(students.flatMap(s=>Object.keys(s.homeworkStatus||{})))]; if(names.length===0) names.push("默认作业"); let html = '<option value="__NEW__">✨ 新建作业...</option>'; names.forEach(hw => { html += `<option value="${escapeHtmlForAttr(hw)}" ${hw===currentHomeworkName ? 'selected' : ''}>📋 ${escapeHtml(hw)}</option>`; }); selector.innerHTML = html; }
+let selectorChangeHandler = () => { const val = document.getElementById("homeworkSelector").value; if(val === "__NEW__"){ let newName = prompt("请输入新作业名称：", `作业${Date.now()}`); if(newName && newName.trim()){ newName = newName.trim(); students.forEach(s=>{ if(!s.homeworkStatus[newName]) s.homeworkStatus[newName]=false; if(!s.notes[newName]) s.notes[newName]=""; }); currentHomeworkName = newName; saveData(); updateHomeworkNameUI(); renderTwoColumnList(); updateStats(); refreshHomeworkSelector(); showToast(`✅ 新建作业「${currentHomeworkName}」`,"success"); } } else { if(val !== currentHomeworkName){ currentHomeworkName = val; saveData(); updateHomeworkNameUI(); renderTwoColumnList(); updateStats(); showToast(`已切换至「${currentHomeworkName}」`,"success"); } } refreshHomeworkSelector(); document.getElementById("homeworkSelector").value = currentHomeworkName; };
+document.getElementById("homeworkSelector").addEventListener("change", selectorChangeHandler);
+document.getElementById("completeStatBtn").onclick = () => { if(!currentClass) return; const list = students.filter(s=>s.class===currentClass); if(list.length===0) return alert("无学生"); const submitted = list.filter(s=>getSubmissionStatus(s)).map(s=>({id:s.id,name:s.name})); const unsubmitted = list.filter(s=>!getSubmissionStatus(s)).map(s=>({id:s.id,name:s.name})); historyRecords.unshift({ id:Date.now(), homeworkName:currentHomeworkName, className:currentClass, timestamp:new Date().toISOString(), submittedList:submitted, unsubmittedList:unsubmitted, totalCount:list.length, submittedCount:submitted.length, unsubmittedCount:unsubmitted.length, summary:`${submitted.length}/${list.length}` }); if(historyRecords.length>100) historyRecords=historyRecords.slice(0,100); list.forEach(s=>setSubmissionStatus(s,false)); saveData(); renderTwoColumnList(); updateStats(); renderHistoryList(); showToast(`✅ 已记录「${currentHomeworkName}」完成情况并重置状态`,"success"); };
+document.getElementById("clearHistoryBtn").onclick = () => { if(confirm("清空历史记录？")){ historyRecords = []; saveData(); renderHistoryList(); showToast("历史已清空","warning"); } };
+function showMainPage() { document.getElementById("mainContent").classList.remove("hidden"); document.getElementById("helpPage").classList.add("hidden"); stopScanning(); }
+function showHelpPage() { document.getElementById("mainContent").classList.add("hidden"); document.getElementById("helpPage").classList.remove("hidden"); initHelpTabs(); }
+function initHelpTabs() { const btns = document.querySelectorAll(".help-nav-btn"); const contents = document.querySelectorAll(".help-tab-content"); btns.forEach(btn => btn.onclick = () => { contents.forEach(c=>c.classList.add("hidden")); document.getElementById(btn.dataset.tab+"Content").classList.remove("hidden"); btns.forEach(b=>b.classList.remove("bg-primary/10","text-primary")); btn.classList.add("bg-primary/10","text-primary"); }); document.querySelector("[data-tab='usage']").click(); }
+document.getElementById("homeBtn").onclick = showMainPage;
+document.getElementById("helpBtn").onclick = showHelpPage;
+document.getElementById("footerLegalLink").onclick = (e) => { e.preventDefault(); showHelpPage(); const legalBtn = Array.from(document.querySelectorAll(".help-nav-btn")).find(btn => btn.dataset.tab === "legal"); if(legalBtn) legalBtn.click(); };
+document.getElementById("genCopySyncBtnMain").onclick = () => { const payload = { v:"3.0", ts:Date.now(), classes, currentHomeworkName, students: students.map(s=>({ id:s.id, name:s.name, class:s.class, homeworkStatus:s.homeworkStatus||{}, notes:s.notes||{}, qrCode:s.qrCode||"" })), historyRecords }; const compressed = LZString.compressToBase64(JSON.stringify(payload)); const modalDiv=document.createElement("div"); modalDiv.className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"; modalDiv.innerHTML=`<div class="bg-white rounded-lg w-full max-w-md p-5 relative"><button class="closeSync absolute right-3 top-3 text-gray-500"><i class="fa fa-times"></i></button><h3 class="text-lg font-semibold text-center">同步码</h3><textarea class="w-full h-28 text-xs font-mono border rounded p-2 my-3" readonly>${compressed}</textarea><button class="copySyncBtn bg-primary text-white px-4 py-2 rounded w-full">复制</button></div>`; document.body.appendChild(modalDiv); modalDiv.querySelector(".closeSync").onclick=()=>modalDiv.remove(); modalDiv.querySelector(".copySyncBtn").onclick=async()=>{ await navigator.clipboard.writeText(compressed); alert("已复制"); modalDiv.remove(); }; };
+document.getElementById("pasteParseSyncBtnMain").onclick = async () => { let code = ""; try{ code = await navigator.clipboard.readText(); }catch(e){ code = prompt("粘贴同步码"); } if(code){ try{ const data = JSON.parse(LZString.decompressFromBase64(code.trim())); if(data.v==="3.0"){ data.classes.forEach(c=>{ if(!classes.includes(c)) classes.push(c); }); data.students.forEach(remote=>{ const idx = students.findIndex(l=>l.class===remote.class && l.id===remote.id); if(idx===-1) students.push(remote); else students[idx]=remote; }); if(data.currentHomeworkName) currentHomeworkName = data.currentHomeworkName; if(data.historyRecords) historyRecords = data.historyRecords; saveData(); renderClassList(); if(currentClass) renderTwoColumnList(); updateStats(); updateHomeworkNameUI(); refreshHomeworkSelector(); renderHistoryList(); alert("同步成功"); }else alert("版本不兼容"); }catch(e){ alert("同步失败"); } } };
+document.getElementById("current-date").textContent = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+migrateStudentData(); renderClassList(); renderTwoColumnList(); updateStats(); refreshHomeworkSelector(); renderHistoryList(); updateHomeworkNameUI(); if(document.getElementById("homeworkSelector")) document.getElementById("homeworkSelector").value = currentHomeworkName; showMainPage();
 </script>
 </body>
 </html>
